@@ -2,4 +2,6 @@
 *.retry
 *.pyc
 /.vagrant/
+/.tests/
+/facts/
 /vault.txt
