@@ -1,18 +1,28 @@
 ---
-- name: Clone Gramarr
+- name: Create user
+  user:
+    name: gramarr
+    system: true
+    comment: "Gramarr container system user"
+    create_home: false
+    home: "{{ configs_dir }}/gramarr"
+    shell: "/usr/sbin/nologin"
+  register: gramarr_user
+
+- name: Clone git project
   git:
     repo: 'https://github.com/uberjew666/gramarr.git'
     dest: "/opt/gramarr"
     update: true
-  register: git_repo
+  register: git_pull
 
-- name: Create config.json
+- name: Rename config template
   copy:
     src: "/opt/gramarr/config.json.template"
     dest: "/opt/gramarr/config.json"
     remote_src: true
 
-- name: Build Gramarr image
+- name: Build image
   docker_image:
     build:
       path: "/opt/gramarr"
@@ -21,27 +31,31 @@
     tag: latest
     source: build
     force_source: true
-  when: git_repo is changed
-  register: image
+  when: git_pull.changed
+  register: build
 
-- name: Create directory
+- name: Create home directory
   file:
-    path: "/opt/configs/gramarr"
+    path: "{{ gramarr_user.home }}"
     state: directory
-    mode: '0755'
+    recurse: true
+    owner: "{{ gramarr_user.uid }}"
+    group: "{{ gramarr_user.group }}"
 
-- name: Create config.json
+- name: Inject config.json template
   template:
     src: config.json.j2
     dest: "/opt/configs/gramarr/config.json"
+    owner: "{{ gramarr_user.uid }}"
+    group: "{{ gramarr_user.group }}"
     mode: '0640'
 
-- name: Deploy gramarr container
+- name: Create and start gramarr container
   docker_container:
     state: started
     name: gramarr
-    image: linuxserver/gramarr
-    recreate: true
+    image: linuxserver/gramarr:latest
+    recreate: '{{ true if (build.changed) else false }}'
     volumes:
         - "{{ configs_dir }}/gramarr:/config"
     networks:
@@ -49,5 +63,11 @@
         aliases:
           - gramarr
     networks_cli_compatible: true
+    labels:
+      traefik.enable: "false"
+    env:
+      PUID: "{{ gramarr_user.uid }}"
+      PGID: "{{ gramarr_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
     restart_policy: always
-  when: image is changed

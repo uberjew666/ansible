@@ -1,0 +1,80 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: kf2
+
+- name: Create kf2 user
+  user:
+    name: kf2
+    system: true
+    comment: "Killing Floor 2 container system user"
+    create_home: false
+    home: "{{ games_dir }}/kf2server"
+    shell: "/usr/sbin/nologin"
+  register: kf2_user
+
+- name: Create home directory
+  file:
+    path: "{{ kf2_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ kf2_user.uid }}"
+    group: "{{ kf2_user.group }}"
+
+- name: Create and start kf2server container
+  docker_container:
+    state: absent
+    name: kf2server
+    image: dwurf/docker-kf2:latest
+    command: validate
+    pull: true
+    volumes:
+      - "{{ games_dir }}/kf2server:/home/steam/kf2server"
+    ports:
+      - "0.0.0.0:20560:20560/udp"
+      - "0.0.0.0:27015:27015/udp"
+      - "0.0.0.0:7777:7777/udp"
+    networks:
+      - name: cloudnet
+        aliases:
+          - kf2server
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.kf2.service: "kf2"
+      traefik.http.routers.kf2.rule: "Host(`kf2.{{ domain }}`)"
+      traefik.http.routers.kf2.tls: "true"
+      traefik.http.routers.kf2.tls.certresolver: "letsencrypt"
+      traefik.http.routers.kf2.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.kf2.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.kf2.loadbalancer.server.port: "8080"
+    env:
+      PUID: "{{ kf2_user.uid }}"
+      PGID: "{{ kf2_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+      KF_DIFFICULTY: "1"
+      KF_GAME_LENGTH: "1"
+      KF_SERVER_NAME: "Mook"
+      KF_MOTD: "Matt is the imposter. Shoot him."
+      KF_GAME_PASS: "{{ kf2_server_password }}"
+      KF_MAP: "KF-EvacuationPoint"
+      KF_GAME_MODE: "Survival?Mutator=KFMutator.KFMutator_MaxPlayersV2?MaxPlayers=10"
+      KF_DISABLE_TAKEOVER: "true"
+      KF_ENABLE_WEB: "true"
+    purge_networks: true
+    restart_policy: always
+
+- name: Allow kf2server server ports through firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+    comment: "Killing Floor 2 Dedicated Server"
+  loop:
+    - "20560"
+    - "27105"
+    - "7777"
+

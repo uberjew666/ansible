@@ -11,7 +11,7 @@ unix extensions = no
 path = {{ media_dir }}
 comment = Storage Pool
 writable = yes
-write list = @smbaccess
+write list = @{{ media_group }}
 valid users = simon, alan
 create mode = 0664
 directory mode = 0775
@@ -22,16 +22,17 @@ follow symlinks = yes
 path = {{ download_dir }}
 comment = Downloads, duh
 writable = yes
-write list = @smbaccess
+write list = @{{ media_group }}
 valid users = simon
 create mode = 0664
 directory mode = 0775
 
 [alan]
-path = {{ media_dir }}/Videos/Alan
-comment = Alan's folder
+path = {{ alan_dir }}
+comment = Alans share
 writable = yes
 write list = alan
 valid users = alan
 create mode = 0664
 directory mode = 0775
+

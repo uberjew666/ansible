@@ -1,0 +1,57 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: tautulli
+
+- name: Create user
+  user:
+    name: tautulli
+    system: true
+    comment: "Tautulli container system user"
+    create_home: false
+    home: "{{ configs_dir }}/tautulli"
+    shell: "/usr/sbin/nologin"
+  register: tautulli_user
+
+- name: Create home directory
+  file:
+    path: "{{ tautulli_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ tautulli_user.uid }}"
+    group: "{{ tautulli_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: tautulli
+    image: linuxserver/tautulli:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/tautulli:/config"
+      - "{{ configs_dir}}/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - name: cloudnet
+        aliases:
+          - tautulli
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.tautulli.service: "tautulli"
+      traefik.http.routers.tautulli.rule: "Host(`tautulli.{{ domain }}`)"
+      traefik.http.routers.tautulli.tls: "true"
+      traefik.http.routers.tautulli.tls.certresolver: "letsencrypt"
+      traefik.http.routers.tautulli.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.tautulli.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.tautulli.loadbalancer.server.port: "8181"
+    env:
+      PUID: "{{ tautulli_user.uid }}"
+      PGID: "{{ tautulli_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+

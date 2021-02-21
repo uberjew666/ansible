@@ -1,0 +1,79 @@
+---
+- name: Create user
+  user:
+    name: nginx
+    group: nginx
+    system: true
+    comment: "nginx container system user"
+    create_home: false
+    home: "{{ configs_dir }}/nginx"
+    shell: "/usr/sbin/nologin"
+  register: nginx_user
+
+- name: Create home directory
+  file:
+    path: "{{ nginx_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ nginx_user.uid }}"
+    group: "{{ nginx_user.group }}"
+
+- name: Create and start container
+  docker_container:
+    state: absent
+    name: nginx-proxy
+    image: jwilder/nginx-proxy:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs"
+      - "{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - name: cloudnet
+        aliases:
+          - nginx-proxy
+    networks_cli_compatible: true
+    env:
+      PUID: "{{ nginx_user.uid }}"
+      PGID: "{{ nginx_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+
+- name: Create and start companion container
+  docker_container:
+    state: absent
+    name: nginx-proxy-letsencrypt
+    image: jrcs/letsencrypt-nginx-proxy-companion:latest
+    pull: true
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - "{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs"
+      - "{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/etc/acme.sh"
+    env:
+      PUID: "{{ nginx_user.uid }}"
+      PGID: "{{ nginx_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+      LETSENCRYPT_KEYSIZE: "ec-256"
+      DEFAULT_EMAIL: "simon_hulme@hotmail.co.uk"
+    purge_networks: true
+    restart_policy: always
+
+- name: Allow nginx-proxy through firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    comment: "nginx Reverse Proxy"
+  loop:
+    - "80"
+    - "443"

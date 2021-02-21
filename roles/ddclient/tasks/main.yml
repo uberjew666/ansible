@@ -1,0 +1,55 @@
+---
+- name: Remove existing container
+  docker_container:
+    state: absent
+    name: ddclient
+
+- name: Create user
+  user:
+    name: ddclient
+    system: true
+    comment: "ddclient container system user"
+    create_home: false
+    home: "{{ configs_dir }}/ddclient"
+    shell: "/usr/sbin/nologin"
+  register: ddclient_user
+
+- name: Create home directory
+  file:
+    path: "{{ ddclient_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ ddclient_user.uid }}"
+    group: "{{ ddclient_user.group }}"
+
+- name: Setup config file
+  template:
+    src: ddclient.conf.j2
+    dest: "{{ configs_dir }}/ddclient/ddclient.conf"
+    owner: "{{ ddclient_user.uid }}"
+    group: "{{ ddclient_user.group }}"
+    mode: '0600'
+  when: subdomains is defined
+
+- name: Deploy container
+  docker_container:
+    state: started
+    name: ddclient
+    image: linuxserver/ddclient:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/ddclient:/config"
+    networks:
+      - name: cloudnet
+        aliases:
+          - ddclient
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "false"
+    env:
+      PUID: "{{ ddclient_user.uid }}"
+      PGID: "{{ ddclient_user.group }}"
+      TZ: "{{ timezone }}"
+    purge_networks: true
+    restart_policy: always
+

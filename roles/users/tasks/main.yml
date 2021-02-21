@@ -1,16 +1,24 @@
 ---
-- name: create samba access
-  group:
-    name: smbaccess
-    state: present
-    gid: 1001
-
-- name: create users
+- name: Create user
+  become: yes
   user:
     name: "{{ item.name }}"
-    uid: "{{ item.uid }}"
-    createhome: no
-    system: "{{ item.system }}"
-    group: smbaccess
-  with_items:
-    - "{{ users }}"
+    state: present
+    groups: "{{ item.groups }}"
+    append: yes
+    create_home: yes
+    home: "{{ item.home }}"
+    shell: "{{ item.shell }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ users }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Add authorised keys
+  authorized_key:
+    user: "{{ item.0.name }}"
+    state: present
+    key: "{{ item.1 }}"
+  loop: "{{ users | subelements('keys') | default(omit) }}"
+  loop_control:
+    label: "{{ item.1 }}"

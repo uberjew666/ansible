@@ -1,0 +1,61 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: jackett
+
+- name: Create user
+  user:
+    name: jackett
+    group: "{{ media_group }}"
+    system: true
+    comment: "Jackett container system user"
+    create_home: false
+    home: "{{ configs_dir }}/jackett"
+    shell: "/usr/sbin/nologin"
+  register: jackett_user
+
+- name: Create home directory
+  file:
+    path: "{{ jackett_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ jackett_user.uid }}"
+    group: "{{ jackett_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: jackett
+    image: linuxserver/jackett:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/jackett:/config"
+    networks:
+      - name: cloudnet
+        aliases:
+          - jackett
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.jackett.service: "jackett"
+      traefik.http.routers.jackett.rule: "Host(`jackett.{{ domain }}`)"
+      traefik.http.routers.jackett.tls: "true"
+      traefik.http.routers.jackett.tls.certresolver: "letsencrypt"
+      traefik.http.routers.jackett.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.jackett.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.jackett.loadbalancer.server.port: "9117"
+    env:
+      PUID: "{{ jackett_user.uid }}"
+      PGID: "{{ jackett_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+      RUN_OPTS: ""
+    purge_networks: true
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --request GET --fail --head --silent http://localhost:9117/ || exit 1"
+      interval: 10s
+

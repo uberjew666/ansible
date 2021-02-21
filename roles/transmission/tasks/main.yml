@@ -1,0 +1,61 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: transmission
+
+- name: Create user
+  user:
+    name: transmission
+    group: "{{ media_group }}"
+    system: true
+    comment: "Transmission container system user"
+    create_home: false
+    home: "{{ configs_dir }}/transmission"
+    shell: "/usr/sbin/nologin"
+  register: transmission_user
+
+- name: Create home directory
+  file:
+    path: "{{ transmission_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ transmission_user.uid }}"
+    group: "{{ transmission_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: transmission
+    image: linuxserver/transmission:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/transmission:/config"
+      - "{{ download_dir }}:/downloads"
+    networks:
+      - name: cloudnet
+        aliases:
+          - transmission
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.transmission.service: "transmission"
+      traefik.http.routers.transmission.rule: "Host(`transmission.{{ domain }}`)"
+      traefik.http.routers.transmission.tls: "true"
+      traefik.http.routers.transmission.tls.certresolver: "letsencrypt"
+      traefik.http.routers.transmission.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.transmission.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.transmission.loadbalancer.server.port: "9091"
+    env:
+      PUID: "{{ transmission_user.uid }}"
+      PGID: "{{ transmission_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --head --silent http://localhost:9091/transmission || exit 1"
+      interval: 10s
+

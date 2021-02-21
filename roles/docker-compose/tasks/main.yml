@@ -1,12 +1,12 @@
 ---
-- name: install docker-compose binary
-  when: install_docker|succeeded
+- name: Install Compose binary
   get_url:
     url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
     dest: /usr/local/bin/docker-compose
     mode: 0755
 
-- name: install docker-py
-  pip:
-    name: docker-py
-    state: present
+- name: Check binary is installed correctly
+  shell: docker-compose -v
+  register: shell_output
+  failed_when: "docker_compose_version is not in shell_output.stdout"
+  changed_when: false

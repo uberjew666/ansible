@@ -1,0 +1,10 @@
+---
+- name: Remove {{ subdomain }} A record
+  cloudflare_dns:
+    state: absent
+    record: "{{ subdomain }}"
+    type: A
+    zone: "{{ domain }}"
+    proxied: false
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_api_token }}"

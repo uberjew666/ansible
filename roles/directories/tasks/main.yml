@@ -1,0 +1,23 @@
+---
+- name: Create directories
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: simon
+    group: "{{ media_group }}"
+    mode: '2775'
+  loop:
+    - "{{ media_dir }}"
+    - "{{ configs_dir }}"
+    - "{{ download_dir | default(omit) }}"
+    - "{{ games_dir | default(omit) }}"
+    - "{{ movies_dir | default(omit) }}"
+    - "{{ tv_dir | default(omit) }}"
+    - "{{ music_dir | default(omit) }}"
+    - "{{ comics_dir | default(omit) }}"
+    - "{{ audiobooks_dir | default(omit) }}"
+    - "{{ ebooks_dir | default(omit) }}"
+    - "{{ sports_dir | default(omit) }}"
+    - "{{ youtube_dir | default(omit) }}"
+

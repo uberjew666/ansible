@@ -1,0 +1,18 @@
+# log to syslog
+syslog=yes
+
+# get real address
+use=web
+web=https://ipinfo.io/ip
+ssl=yes
+
+# cloudflare details
+protocol=cloudflare,                              \
+zone={{ domain }},                       \
+ttl=1,                                            \
+login={{ cloudflare_email }},                     \
+password={{ cloudflare_api_token }}               \
+
+# sub domains
+{{ domain }},{% for subdomain in subdomains %}{{ subdomain + '.' + domain }}{% if not loop.last %},{% endif %}
+{% endfor %}

@@ -1,0 +1,158 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars: 
+    subdomain: sabnzbd
+
+- name: Create user
+  user:
+    state: present
+    name: sabnzbd
+    group: "{{ media_group }}"
+    system: true
+    comment: "Sabnzbd container system user"
+    create_home: false
+    home: "{{ configs_dir }}/sabnzbd"
+    shell: "/usr/sbin/nologin"
+  register: sabnzbd_user
+
+- name: Create home directory
+  file:
+    state: directory
+    path: "{{ sabnzbd_user.home }}"
+    recurse: true
+    owner: "{{ sabnzbd_user.uid }}"
+    group: "{{ sabnzbd_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: sabnzbd
+    image: linuxserver/sabnzbd:latest
+    pull: true
+    volumes:
+        - "{{ sabnzbd_user.home }}:/config"
+        - "{{ download_dir }}:/downloads"
+        - "{{ download_dir }}/incomplete:/incomplete-downloads"
+    networks:
+      - name: cloudnet
+        aliases:
+          - sabnzbd
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.sabnzbd.service: "sabnzbd"
+      traefik.http.routers.sabnzbd.rule: "Host(`sabnzbd.{{ domain }}`)"
+      traefik.http.routers.sabnzbd.tls: "true"
+      traefik.http.routers.sabnzbd.tls.certresolver: "letsencrypt"
+      traefik.http.routers.sabnzbd.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.sabnzbd.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.sabnzbd.loadbalancer.server.port: "8080"
+    env:
+      PUID: "{{ sabnzbd_user.uid }}"
+      PGID: "{{ sabnzbd_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --head --silent http://localhost:8080/ || exit 1"
+      interval: 10s
+
+- name: Wait until config file is created
+  stat:
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+  register: sabnzbd_ini
+  until: sabnzbd_ini.stat.exists
+  retries: 5
+  delay: 3
+
+- name: Stop container
+  docker_container:
+    state: stopped
+    name: sabnzbd
+
+- name: Add servers section to config file
+  lineinfile:
+    state: present
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+    regexp: '^\[servers\]'
+    line: '[servers]'
+    insertafter: EOF
+
+- name: Add server providers to config file
+  blockinfile:
+    state: present
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ item.name }}"
+    insertafter: '\[servers\]'
+    block: |
+      [[{{ item.name }}]]
+      name = {{ item.name }}
+      displayname = {{ item.name }}
+      host = {{ item.host }}
+      port = {{ item.port }}
+      timeout = 120
+      username = {{ item.user }}
+      password = {{ item.pass }}
+      connections = {{ item.connections }}
+      ssl = 1
+      ssl_verify = 2
+      ssl_ciphers = ""
+      enable = 1
+      optional = 0
+      retention = {{ item.retention }}
+      send_group = 0
+      priority = {{ item.priority }}
+      notes = ""
+  loop: "{{ sabnzbd_servers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: sabnzbd_servers is defined
+
+- name: Add categories section to config file
+  lineinfile:
+    state: present
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+    regexp: '^\[categories\]'
+    line: '[categories]'
+    insertafter: EOF
+
+- name: Add categories to config file
+  blockinfile:
+    state: present
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ item.name }}"
+    insertafter: '\[categories\]'
+    block: |
+      [[{{ item.name }}]]
+      name = {{ item.name }}
+      order = {{ item.order }}
+      pp = {{ item.processing }}
+      script = {{ item.script }}
+      dir = {{ item.directory }}
+      newzbin = ""
+      priority = {{ item.priority }}
+  loop: "{{ sabnzbd_categories }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: sabnzbd_categories is defined
+
+- name: Tweak various options in config file
+  ini_file:
+    state: present
+    path: "{{ sabnzbd_user.home }}/sabnzbd.ini"
+    section: misc
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop: "{{ sabnzbd_settings | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: sabnzbd_settings is defined
+
+- name: Start container
+  docker_container:
+    state: started
+    name: sabnzbd

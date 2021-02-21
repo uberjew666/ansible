@@ -1,0 +1,56 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars: 
+    subdomain: nzbget
+
+- name: Create user
+  user:
+    name: nzbget
+    group: "{{ media_group }}"
+    system: true
+    comment: "nzbget container system user"
+    create_home: false
+    home: "{{ configs_dir }}/nzbget"
+    shell: "/usr/sbin/nologin"
+  register: nzbget_user
+
+- name: Create home directory
+  file:
+    path: "{{ nzbget_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ nzbget_user.uid }}"
+    group: "{{ nzbget_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: nzbget
+    image: linuxserver/nzbget:latest
+    pull: true
+    volumes:
+        - "{{ configs_dir }}/nzbget:/config"
+        - "{{ download_dir }}:/downloads"
+    networks:
+      - name: cloudnet
+        aliases:
+          - nzbget
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.nzbget.service: "nzbget"
+      traefik.http.routers.nzbget.rule: "Host(`nzbget.{{ domain }}`)"
+      traefik.http.routers.nzbget.tls: "true"
+      traefik.http.routers.nzbget.tls.certresolver: "letsencrypt"
+      traefik.http.routers.nzbget.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.nzbget.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.nzbget.loadbalancer.server.port: "6789"
+    env:
+      PUID: "{{ nzbget_user.uid }}"
+      PGID: "{{ nzbget_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always

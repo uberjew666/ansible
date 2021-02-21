@@ -1,0 +1,64 @@
+---
+- name: Create valheim user
+  user:
+    name: valheim
+    system: true
+    comment: "Valheim container system user"
+    create_home: false
+    home: "{{ games_dir }}/valheim"
+    shell: "/usr/sbin/nologin"
+  register: valheim_user
+
+- name: Create home directory
+  file:
+    path: "{{ valheim_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ valheim_user.uid }}"
+    group: "{{ valheim_user.group }}"
+
+- name: Create and start Valheim server container
+  docker_container:
+    state: started
+    name: valheim
+    image: mbround18/valheim:latest
+    pull: true
+    volumes:
+      - "{{ valheim_user.home }}:/home/steam/valheim"
+      - "{{ configs_dir }}/valheim:/home/steam/.config/unity3d/IronGate/Valheim"
+    ports:
+      - "0.0.0.0:2456:2456/udp"
+      - "0.0.0.0:2457:2457/udp"
+      - "0.0.0.0:2458:2458/udp"
+    networks:
+      - name: cloudnet
+        aliases:
+          - valheim
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "false"
+    env:
+      PUID: "{{ valheim_user.uid }}"
+      PGID: "{{ valheim_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+      PORT: "2456"
+      NAME: "Mook"
+      WORLD: "BenMook"
+      PUBLIC: "1"
+      PASSWORD: "{{ valheim_server_password | default(omit) }}"
+      AUTO_UPDATE: "1"
+      AUTO_UPDATE_SCHEDULE: "0 5 * * *"
+    purge_networks: true
+    restart_policy: always
+
+- name: Allow Valheim server ports through firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+    comment: "Valheim Dedicated Server"
+  loop:
+    - "2456"
+    - "2457"
+    - "2458"

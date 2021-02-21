@@ -1,0 +1,74 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: plex
+
+- name: Create user
+  user:
+    name: plex
+    group: "{{ media_group }}"
+    system: true
+    comment: "Plex container system user"
+    create_home: false
+    home: "{{ configs_dir }}/plex"
+    shell: "/usr/sbin/nologin"
+  register: plex_user
+
+- name: Create home directory
+  file:
+    path: "{{ plex_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ plex_user.uid }}"
+    group: "{{ plex_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: plex
+    image: linuxserver/plex:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/plex:/config"
+      - "{{ media_dir }}:/data:ro"
+      - "{{ ssd_dir }}/transcode:/transcode"
+      - "/tmp:/tmp"
+    ports:
+      - "32400:32400"
+    networks:
+      - name: cloudnet
+        aliases:
+          - plex
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.plex.service: "plex"
+      traefik.http.routers.plex.rule: "Host(`plex.{{ domain }}`)"
+      traefik.http.routers.plex.tls: "true"
+      traefik.http.routers.plex.tls.certresolver: "letsencrypt"
+      traefik.http.routers.plex.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.plex.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.plex.loadbalancer.server.port: "32400"
+    env:
+      PUID: "{{ plex_user.uid }}"
+      PGID: "{{ plex_user.group }}"
+      TZ: "{{ timezone }}"
+      VERSION: "{{ plex_version }}"
+    purge_networks: true
+    restart_policy: always
+    devices:
+      - "/dev/dri:/dev/dri"
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --head --silent http://localhost:32400/web/index.html || exit 1"
+      interval: 10s
+
+- name: Allow plex ports through firewall
+  ufw:
+    rule: allow
+    port: '32400'
+    proto: tcp
+    comment: "Plex Media Server"
+

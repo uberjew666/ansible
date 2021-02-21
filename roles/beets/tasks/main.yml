@@ -1,0 +1,61 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: beets
+
+- name: Create user
+  user:
+    name: beets
+    group: "{{ media_group }}"
+    system: true
+    comment: "Beets container system user"
+    create_home: false
+    home: "{{ configs_dir }}/beets"
+    shell: "/usr/sbin/nologin"
+  register: beets_user
+
+- name: Create home directory
+  file:
+    path: "{{ beets_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ beets_user.uid }}"
+    group: "{{ beets_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: absent
+    name: beets
+    image: linuxserver/beets:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/beets:/config"
+      - "{{ download_dir }}:/downloads"
+      - "{{ music_dir }}:/music"
+    networks:
+      - name: cloudnet
+        aliases:
+          - beets
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.beets.rule: "Host(`beets.{{ domain }}`)"
+      traefik.http.routers.beets.tls: "true"
+      traefik.http.routers.beets.tls.certresolver: "letsencrypt"
+      traefik.http.routers.beets.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.beets.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.beets.loadbalancer.server.port: "8337"
+    env:
+      PUID: "{{ beets_user.uid }}"
+      PGID: "{{ beets_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --head --silent http://localhost:8337/ || exit 1"
+      interval: 10s                                                                                            
+

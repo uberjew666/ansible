@@ -1,0 +1,60 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: readarr
+
+- name: Create user
+  user:
+    name: readarr
+    group: "{{ media_group }}"
+    system: true
+    comment: "Readarr container system user"
+    create_home: false
+    home: "{{ configs_dir }}/readarr"
+    shell: "/usr/sbin/nologin"
+  register: readarr_user
+
+- name: Create home directory
+  file:
+    path: "{{ readarr_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ readarr_user.uid }}"
+    group: "{{ readarr_user.group }}"
+
+- name: Create and start hotio container
+  docker_container:
+    state: started
+    name: readarr
+    image: hotio/readarr:nightly
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/readarr:/config"
+      - "{{ download_dir }}:/downloads"
+      - "{{ ebooks_dir }}:/ebooks"
+      - "{{ audiobooks_dir }}:/audiobooks"
+      - "/etc/localtime:/etc/localtime:ro" 
+    networks:
+      - name: cloudnet
+        aliases:
+          - readarr
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.readarr.service: "readarr"
+      traefik.http.routers.readarr.rule: "Host(`readarr.{{ domain }}`)"
+      traefik.http.routers.readarr.tls: "true"
+      traefik.http.routers.readarr.tls.certresolver: "letsencrypt"
+      traefik.http.routers.readarr.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.readarr.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.readarr.loadbalancer.server.port: "8787"
+    env:
+      PUID: "{{ readarr_user.uid }}"
+      PGID: "{{ readarr_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+

@@ -1,17 +1,30 @@
 ---
 - name: Install Samba
+  become: yes
   apt:
-    name: samba
+    name:
+      - "samba"
     state: present
 
 - name: Configure Samba
+  become: yes
   template:
-    name: smb.j2
+    src: smb.j2
     dest: /etc/samba/smb.conf
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   notify: Restart Samba
+
+- meta: flush_handlers
+
+- name: Allow samba through firewall
+  become: yes
+  ufw:
+    rule: allow
+    port: '445'
+    proto: tcp
+    comment: "Samba File Server"
 
 - name: Check Samba is running
   wait_for:
@@ -20,3 +33,4 @@
     delay: 3
     timeout: 60
   delegate_to: localhost
+

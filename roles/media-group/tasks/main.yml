@@ -1,0 +1,5 @@
+---
+- name: "Create media access group"
+  group:
+    name: "{{ media_group }}"
+    state: present

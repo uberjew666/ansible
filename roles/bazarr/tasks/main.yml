@@ -1,0 +1,62 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: 'cloudflare-dns'
+  vars:
+    subdomain: 'bazarr'
+
+- name: Create user
+  user:
+    state: 'present'
+    name: 'bazarr'
+    group: "{{ media_group }}"
+    system: true
+    comment: 'Bazarr container system user'
+    create_home: false
+    home: "{{ configs_dir }}/bazarr"
+    shell: '/usr/sbin/nologin'
+  register: 'bazarr_user'
+
+- name: Create home directory
+  file:
+    path: "{{ bazarr_user.home }}"
+    state: 'directory'
+    recurse: true
+    owner: "{{ bazarr_user.uid }}"
+    group: "{{ bazarr_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: 'started'
+    name: 'bazarr'
+    image: 'linuxserver/bazarr:latest'
+    pull: true
+    volumes:
+      - "{{ bazarr_user.home }}:/config"
+      - "{{ movies_dir }}:/movies"
+      - "{{ tv_dir }}:/tv"
+    networks:
+      - name: 'cloudnet'
+        aliases:
+          - "bazarr"
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.bazarr.service: 'bazarr'
+      traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ domain }}`)"
+      traefik.http.routers.bazarr.tls: 'true'
+      traefik.http.routers.bazarr.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.bazarr.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.bazarr.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.bazarr.loadbalancer.server.port: '6767'
+    env:
+      PUID: "{{ bazarr_user.uid }}"
+      PGID: "{{ bazarr_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: '002'
+    purge_networks: true
+    restart_policy: 'always'
+    healthcheck:
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:6767/ || exit 1'
+      interval: '10s'

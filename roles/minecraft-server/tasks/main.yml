@@ -1,0 +1,67 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: zanarkand
+
+- name: Create user
+  user:
+    name: minecraft
+    system: true
+    comment: "Minecraft container system user"
+    create_home: false
+    home: "{{ games_dir }}/minecraft"
+    shell: "/usr/sbin/nologin"
+  register: minecraft_user
+
+- name: Create home directory
+  file:
+    path: "{{ minecraft_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ minecraft_user.uid }}"
+    group: "{{ minecraft_user.group }}"
+
+- name: Deploy Zanarkand Minecraft Server
+  docker_container:
+    state: started
+    name: mc-zanarkand
+    image: itzg/minecraft-server:latest
+    pull: true
+    volumes:
+      - "{{ games_dir }}/minecraft/zanarkand:/data"
+    ports:
+      - "25565:25565"
+    networks:
+      - name: cloudnet
+        aliases:
+          - zanarkand
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "false"
+    env:
+      PUID: "{{ minecraft_user.uid }}"
+      PGID: "{{ minecraft_user.group }}"
+      TZ: "{{ timezone }}"
+      EULA: "true"
+      SERVER_NAME: "Zanarkand"
+      MOTD: "A cruel, unforgiving world filled with darkness.."
+      SERVER_PORT: "25565"
+      DIFFICULTY: "normal"
+      WHITELIST: "uberjew666,stemort10"
+      OPS: "uberjew666,stemort10"
+      MAX_PLAYERS: "10"
+      MAX_WORLD_SIZE: "10000"
+      ALLOW_NETHER: "true"
+      PVP: "false"
+      MEMORY: "2G"
+    purge_networks: true
+    restart_policy: always
+
+- name: Allow Minecraft server through firewall
+  ufw:
+    rule: allow
+    port: '25565'
+    proto: tcp
+    comment: "Minecraft Server"

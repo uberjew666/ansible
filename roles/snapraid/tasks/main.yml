@@ -33,3 +33,14 @@
     name: mergerfs
   vars:
     mounts: "{{ snapraid_disks | selectattr('type', '==', 'data') | map(attribute='mount') | list }}"
+
+#- name: Check Snapraid is setup correctly
+#  shell: snapraid status
+#  changed_when: false
+#  register: snapraid_status
+
+#- name: Sync Snapraid
+#  shell: snapraid sync
+#  args:
+#    creates: /var/snapraid.content
+#  when: "'No content file found. Assuming empty.' in snapraid_check.stderr"

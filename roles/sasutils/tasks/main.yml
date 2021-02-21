@@ -1,0 +1,14 @@
+---
+- name: Install dependencies
+  apt:
+    name:
+      - "sg3-utils"
+      - "smp-utils"
+      - "python3-pip"
+
+- name: Install sasutils via Pip
+  pip:
+    name: sasutils
+    state: present
+    executable: pip3
+

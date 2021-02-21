@@ -1,0 +1,61 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: lidarr
+
+- name: Create user
+  user:
+    name: lidarr
+    group: "{{ media_group }}"
+    system: true
+    comment: "Lidarr container system user"
+    create_home: false
+    home: "{{ configs_dir }}/lidarr"
+    shell: "/usr/sbin/nologin"
+  register: lidarr_user
+
+- name: Create home directory
+  file:
+    path: "{{ lidarr_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ lidarr_user.uid }}"
+    group: "{{ lidarr_user.group }}"
+
+- name: Create and start linuxserver container
+  docker_container:
+    state: started
+    name: lidarr
+    image: linuxserver/lidarr:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/lidarr:/config"
+      - "{{ download_dir }}:/downloads"
+      - "{{ music_dir }}:/music"
+      - "/etc/localtime:/etc/localtime:ro" 
+    networks:
+      - name: cloudnet
+        aliases:
+          - lidarr
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.lidarr.rule: "Host(`lidarr.{{ domain }}`)"
+      traefik.http.routers.lidarr.tls: "true"
+      traefik.http.routers.lidarr.tls.certresolver: "letsencrypt"
+      traefik.http.routers.lidarr.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.lidarr.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.lidarr.loadbalancer.server.port: "8686"
+    env:
+      PUID: "{{ lidarr_user.uid }}"
+      PGID: "{{ lidarr_user.group }}"
+      TZ: "{{ timezone }}"
+      UMASK: "002"
+    purge_networks: true
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --head --silent http://localhost:8686/music/ || exit 1"
+      interval: 10s

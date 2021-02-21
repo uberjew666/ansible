@@ -1,0 +1,55 @@
+---
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: portainer
+
+- name: Create user
+  user:
+    name: portainer
+    system: true
+    comment: "Portainer container system user"
+    create_home: false
+    home: "{{ configs_dir }}/portainer"
+    shell: "/usr/sbin/nologin"
+  register: portainer_user
+
+- name: Create home directory
+  file:
+    path: "{{ portainer_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ portainer_user.uid }}"
+    group: "{{ portainer_user.group }}"
+
+- name: Create and start portainer container
+  docker_container:
+    state: started
+    name: portainer
+    image: portainer/portainer-ce:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/portainer:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - name: cloudnet
+        aliases:
+          - portainer
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.portainer.service: "portainer"
+      traefik.http.routers.portainer.rule: "Host(`portainer.{{ domain }}`)"
+      traefik.http.routers.portainer.tls: "true"
+      traefik.http.routers.portainer.tls.certresolver: "letsencrypt"
+      traefik.http.routers.portainer.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.portainer.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.portainer.loadbalancer.server.port: "9000"
+    env:
+      PUID: "{{ portainer_user.uid }}"
+      PGID: "{{ portainer_user.group }}"
+      TZ: "{{ timezone }}"
+    purge_networks: true
+    restart_policy: always
+

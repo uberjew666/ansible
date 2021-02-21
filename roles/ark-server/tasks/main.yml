@@ -1,0 +1,60 @@
+---
+- name: Deploy ARK Dedicated Server container
+  docker_container:
+    state: 'absent'
+    name: 'arkserver'
+    image: 'thmhoag/arkserver:latest'
+    pull: true
+    volumes:
+      - "/ssd/games/ark:/ark"
+      - "/ssd/steam:/home/steam/Steam"
+    ports:
+      - "7778:7778"
+      - "7778:7778/udp"
+      - "27016:27016"
+      - "27016:27016/udp"
+      - "32330:32330"
+    networks:
+      - name: 'cloudnet'
+        aliases:
+          - 'arkserver'
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: 'false'
+    env:
+      am_ark_SessionName: 'Mook'
+      am_serverMap: 'TheIsland'
+      am_ark_ServerPassword: "{{ ark_server_password }}"
+      am_ark_ServerAdminPassword: "{{ ark_server_admin_password }}"
+      am_ark_QueryPort: '27016'
+      am_ark_Port: '7778'
+      am_ark_RCONEnabled: 'true'
+      am_ark_RCONPort: '32330'
+      am_ark_MaxPlayers: '15'
+      am_arkwarnminutes: '15'
+      am_arkflag_crossplay: 'false'
+      am_arkflag_NoBattleye: 'true'
+      TZ: "{{ timezone }}"
+    purge_networks: true
+    restart_policy: 'always'
+
+- name: Allow ARK Dedicated Server TCP ports through firewall
+  ufw:
+    rule: 'allow'
+    port: "{{ item }}"
+    proto: 'tcp'
+    comment: 'ARK Dedicated Server'
+  loop:
+    - "7778"
+    - "27016"
+    - "32330"
+
+- name: Allow ARK Dedicated Server UDP ports through firewall
+  ufw:
+    rule: 'allow'
+    port: "{{ item }}"
+    proto: 'udp'
+    comment: 'ARK Dedicated Server'
+  loop:
+    - "7778"
+    - "27016"

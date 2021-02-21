@@ -185,3 +185,13 @@ sabnzbd_categories:
 
 # Plex variables
 plex_version: "1.21.3.4015-a4be9cb8b"
+
+# Valheim variables
+valheim_server_password: "{{ vault_valheim_server_password }}"
+
+# Ark variables
+ark_server_password: "{{ vault_ark_server_password }}"
+ark_server_admin_password: "{{ vault_ark_server_admin_password }}"
+
+# Killing Floor 2 variables
+kf2_server_password: "{{ vault_kf2_server_password }}"

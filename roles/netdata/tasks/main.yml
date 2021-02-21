@@ -1,47 +1,69 @@
 ---
-- name: Install prerequisites
-  apt:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - zlib1g-dev
-    - uuid-dev
-    - libmnl-dev
-    - gcc
-    - make
-    - git
-    - autoconf
-    - autoconf-archive
-    - autogen
-    - automake
-    - pkg-config curl
+- name: Include Cloudflare DNS tasks
+  include_role:
+    name: cloudflare-dns
+  vars:
+    subdomain: netdata
 
-- name: Clone Netdata repo
-  git:
-    repo: https://github.com/firehol/netdata.git
-    dest: /opt/netdata
-    depth: 1
-    update: yes
+- name: Create user
+  user:
+    name: netdata
+    group: docker
+    system: true
+    comment: "Netdata container system user"
+    create_home: false
+    home: "{{ configs_dir }}/netdata"
+    shell: "/usr/sbin/nologin"
+  register: netdata_user
 
-- name: Install Netdata
-  shell: ./netdata-installer.sh
-  args:
-    chdir: /opt/netdata
-  register: netdata_install_status
+- name: Create home directory
+  file:
+    path: "{{ netdata_user.home }}"
+    state: directory
+    recurse: true
+    owner: "{{ netdata_user.uid }}"
+    group: "{{ netdata_user.group }}"
 
-- name: Change bind address
-  lineinfile:
-    path: /etc/netdata/netdata.conf
-    regexp: 'bind to ='
-    line: 'bind to = 127.0.0.1'
-    owner: netdata
-    group: netdata
-    mode: 0660
-  notify: Restart Netdata
-
-- name: Add auto updater to cron
-  cron:
-    name: set netdata updater
-    minute: 0
-    hour: 6
-    job: "/opt/netdata/netdata-installer.sh --auto-update"
+- name: Create and start netdata container
+  docker_container:
+    state: started
+    name: netdata
+    image: netdata/netdata:latest
+    pull: true
+    volumes:
+      - "{{ configs_dir }}/netdata:/etc/netdata"
+      - "netdatalib:/var/lib/netdata"
+      - "netdatacache:/var/cache/netdata"
+      - "/etc/passwd:/host/etc/passwd:ro"
+      - "/etc/group:/host/etc/group:ro"
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/etc/os-release:/host/etc/os-release:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - name: cloudnet
+        aliases:
+          - netdata
+    networks_cli_compatible: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.netdata.service: "netdata"
+      traefik.http.routers.netdata.rule: "Host(`netdata.{{ domain }}`)"
+      traefik.http.routers.netdata.tls: "true"
+      traefik.http.routers.netdata.tls.certresolver: "letsencrypt"
+      traefik.http.routers.netdata.tls.domains[0].main: "{{ domain }}"
+      traefik.http.routers.netdata.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.services.netdata.loadbalancer.server.port: "19999"
+    env:
+      PUID: "{{ netdata_user.uid }}"
+      PGID: "{{ netdata_user.group }}"
+    purge_networks: true
+    capabilities:
+      - "SYS_PTRACE"
+    security_opts:
+      - "apparmor=unconfined"
+    restart_policy: always
+    healthcheck:
+      start_period: 2s
+      test: "curl --fail --silent http://localhost:19999/api/v1/info > /dev/null || exit 1"
+      interval: 10s

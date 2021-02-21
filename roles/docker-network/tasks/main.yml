@@ -1,0 +1,5 @@
+---
+- name: Create Cloudnet docker network
+  docker_network:
+    name: cloudnet
+    state: present
