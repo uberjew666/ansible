@@ -1,0 +1,49 @@
+---
+- hosts: plex_servers
+  become: true
+  connection: local
+
+  roles:
+    #- { role: new-disks, tags: disks }
+    - { role: snapraid, tags: snapraid }
+    - { role: media-group, tags: group }
+    - { role: directories, tags: directories }
+    - { role: samba, tags: samba }
+    - { role: cloudplow, tags: cloudplow }
+    - { role: docker, tags: docker }
+    - { role: docker-network, tags: ['network', 'containers'] }
+    - { role: traefik, tags: ['traefik', 'containers'] }
+    - { role: nzbget, tags: ['nzbget', 'containers'] }
+    - { role: sabnzbd, tags: ['sabnzbd', 'containers'] }
+    - { role: vpn, tags: ['vpn', 'containers'] }
+    - { role: transmission, tags: ['transmission', 'containers'] }
+    - { role: nzbhydra2, tags: ['nzbhydra', 'containers'] }
+    - { role: jackett, tags: ['jackett', 'containers'] }
+    - { role: radarr, tags: ['radarr', 'containers'] }
+    - { role: sonarr, tags: ['sonarr', 'containers'] }
+    - { role: lidarr, tags: ['lidarr', 'containers'] }
+    - { role: readarr, tags: ['readarr', 'containers'] }
+    - { role: plex, tags: ['plex', 'containers'] }
+    - { role: bazarr, tags: ['bazarr', 'containers'] }
+    - { role: tautulli, tags: ['tautulli', 'containers'] }
+    - { role: portainer, tags: ['portainer', 'containers'] }
+    - { role: netdata, tags: ['netdata', 'containers'] }
+    - { role: organizr, tags: ['organizr', 'containers'] }
+    - { role: ark-server, tags: ['arkserver', 'containers'] }
+    - { role: kf2-server, tags: ['kf2server', 'containers'] }
+    - { role: minecraft-server, tags: ['zanarkand', 'containers'] }
+    - { role: valheim-server, tags: ['valheim', 'containers'] }
+    - { role: beets, tags: ['beets', 'containers'] }
+    - { role: gramarr, tags: ['gramarr', 'containers'] }
+    - { role: ddclient, tags: ['ddclient', 'containers'] }
+      #- { role: cronjobs, tags: cron }
+      #- { role: bandcamp, tags: bandcamp }
+    - { role: ohmyzsh, tags: ohmyzsh }
+    - { role: sas2ircu, tags: ['sas2ircu', 'utilities'] }
+    - { role: sasutils, tags: ['sasutils', 'utilities'] }
+    - { role: speedtest-cli, tags: ['speedtest', 'utilities'] }
+    - { role: ctop, tags: ['ctop', 'utilities'] }
+    - { role: admin, tags: ['admin', 'tidy', 'containers'] }
+    - { role: users, tags: users } # before disable pass-auth in sshd role
+    - { role: sshd, tags: sshd }
+    - { role: ufw, tags: ['ufw', 'firewall' ] }
