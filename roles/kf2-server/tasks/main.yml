@@ -25,7 +25,7 @@
 
 - name: Create and start kf2server container
   docker_container:
-    state: absent
+    state: started
     name: kf2server
     image: dwurf/docker-kf2:latest
     command: validate
@@ -60,7 +60,7 @@
       KF_SERVER_NAME: "Mook"
       KF_MOTD: "Matt is the imposter. Shoot him."
       KF_GAME_PASS: "{{ kf2_server_password }}"
-      KF_MAP: "KF-EvacuationPoint"
+      KF_MAP: "{{ kf2_server_maps | random }}"
       KF_GAME_MODE: "Survival?Mutator=KFMutator.KFMutator_MaxPlayersV2?MaxPlayers=10"
       KF_DISABLE_TAKEOVER: "true"
       KF_ENABLE_WEB: "true"
