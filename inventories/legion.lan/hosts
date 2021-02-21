@@ -1,0 +1,6 @@
+[plex_servers]
+fatboy.skynet.lan
+
+[asuswrt_routers]
+192.168.1.1 ansible_ssh_user=admin ansible_python_interpreter=/opt/bin/python
+

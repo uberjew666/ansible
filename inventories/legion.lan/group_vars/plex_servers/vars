@@ -1,0 +1,187 @@
+---
+### Variables ###
+domain:   'deathbox.co.uk'
+timezone: 'Europe/London'
+
+### Directory variables ###
+# top level dirs
+data_dir:    '/storage'
+ssd_dir:     '/ssd'
+configs_dir: '/opt/configs'
+
+# secondary level dirs
+download_dir: "{{ data_dir + '/downloads' }}"
+media_dir:    "{{ data_dir + '/media' }}"
+games_dir:    "{{ ssd_dir + '/games' }}"
+
+# media dirs
+movies_dir:     "{{ media_dir + '/movies' }}"
+tv_dir:         "{{ media_dir + '/tv' }}"
+music_dir:      "{{ media_dir + '/music' }}"
+comics_dir:     "{{ media_dir + '/comics' }}"
+audiobooks_dir: "{{ media_dir + '/audiobooks' }}"
+ebooks_dir:     "{{ media_dir + '/ebooks' }}"
+sports_dir:     "{{ media_dir + '/sports' }}"
+youtube_dir:    "{{ media_dir + '/youtube' }}"
+alan_dir:       "{{ media_dir + '/alan' }}"
+
+### User and group variables ###
+media_group: 'media'
+users:
+  - name: 'simon'
+    groups:
+      - "simon"
+      - "sudo"
+      - "{{ media_group }}"
+      - "docker"
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPaOqtAkmYo6/R5tgBLBCQIBA4Q3f7slHFYWYBVfqGNi simon@simonsdesktop"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICLTxt+FIriQOsGaSI9XQiK/tMm6qv3JKD+ChD6f9+rK simon@worklaptop"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFxlBKSh2mje6hadj2G1AFUDLgVGoGf+IiEaq5GPBGQc simon@f2"
+    shell: '/usr/bin/zsh'
+    comment: 'God.'
+    home: '/home/simon'
+  - name: 'alan'
+    groups:
+      - "alan"
+      - "{{ media_group }}"
+    keys: []
+    shell: '/usr/sbin/nologin'
+    comment: 'alans share'
+    home: "{{ alan_dir }}"
+
+# Snapraid variables
+snapraid_disks:
+  - name: data-05
+    mount: /mnt/disk05
+    type: data
+  - name: data-06
+    mount: /mnt/disk06
+    type: data
+  - name: data-07
+    mount: /mnt/disk07
+    type: data
+  - name: data-08
+    mount: /mnt/disk08
+    type: data
+  - name: data-09
+    mount: /mnt/disk09
+    type: data
+  - name: data-10
+    mount: /mnt/disk10
+    type: data
+  - name: data-11
+    mount: /mnt/disk11
+    type: data
+  - name: parity-12
+    mount: /mnt/disk12
+    type: parity
+  - name: data-13
+    mount: /mnt/disk13
+    type: data
+  - name: data-14
+    mount: /mnt/disk14
+    type: data
+  - name: data-15
+    mount: /mnt/disk15
+    type: data
+  - name: parity-16
+    mount: /mnt/disk16
+    type: parity
+
+snapraid_exclude_hidden_files: false
+snapraid_exclude_files:
+  - "*.bak"
+  - "*.unrecoverable"
+  - "/tmp/"
+  - "/lost+found/"
+  - ".AppleDouble"
+  - "._AppleDouble"
+  - ".DS_Store"
+  - ".Thumbs.db"
+  - ".fseventsd"
+  - ".Spotlight-V100"
+  - ".TemporaryItems"
+  - ".Trashes"
+  - ".AppleDB"
+  - "/configs/"
+  - "/downloads/"
+
+# MergerFS variables
+mergerfs_version: 2.32.2
+mergerfs_mount_opts:
+  - "defaults"
+  - "nonempty" # required when disks are not mounted but containers creat mounted directories - fails otherwise
+  - "use_ino"
+  - "category.create=lfs" # set to lfs (least free space) due to change in mergerfs 2.25.0. eplfs would prioritise data on the disk it was created on even if minfreespace was set and below the threshold resulting in enospc error https://github.com/trapexit/mergerfs#policies
+  - "moveonenospc=true"
+  - "allow_other" # A libfuse option which allows users besides the one which ran mergerfs to see the filesystem. This is required for most use-cases
+  - "minfreespace=20G" # The minimum space value used for creation policies. Can be overridden by branch specific option. Understands 'K', 'M', and 'G' to represent kilobyte, megabyte, and gigabyte respectively. (default: 4G)
+  - "fsname={{ data_dir }}" # Sets the name of the filesystem as seen in mount, df, etc. Defaults to a list of the source paths concatenated together with the longest common prefix removed
+
+# Docker variables
+docker_compose_version: 1.13.0
+
+# Sabnzbd variables
+sabnzbd_settings:
+  api_key: "{{ sabnzbd_apikey }}"
+  host_whitelist: "{{ 'sabnzbd.' + domain }}"
+  complete_dir: '/downloads'
+  download_dir: '/incomplete-downloads'
+  download_free: '5G'
+  bandwidth_max: '360M'
+  bandwidth_perc: '10'
+  pause_on_post_processing: '1'
+  pause_on_pwrar: '2'
+  x_frame_options: '0'
+  auto_browser: '0'
+  web_color: 'Night'
+  cleanup_list: 'nfo, sfv, pdf, nzb, srr, info, idx, com, db, url, lnk, html'
+  overwrite_files: '1'
+  unwanted_extensions: 'nfo, sfv, pdf, nzb, srr, info, idx, com, db, md5 par2, url, lnk, html, ini, bat, com, exe, scr, sample'
+  permissions: '775'
+  ignore_unrar_dates: '1'
+  enable_bonjour: '0'
+  enable_all_par: '1'
+  pre_check: '1'
+  queue_limit: '50'
+  folder_rename: '0'
+  history_retention: '7d'
+  ignore_samples: '1'
+  new_nzb_on_failure: '1'
+  no_dupes: '1'
+  no_series_dupes: '1'
+sabnzbd_categories:
+  - name: '*'
+    order: '0'
+    processing: '3'
+    script: 'None'
+    directory: '""'
+    priority: '0'
+  - name: 'music'
+    order: '0'
+    processing: '3'
+    script: 'Default'
+    directory: 'music'
+    priority: '-1'
+  - name: 'movies'
+    order: '0'
+    processing: '3'
+    script: 'Default'
+    directory: 'movies'
+    priority: '-100'
+  - name: 'tv'
+    order: '0'
+    processing: '3'
+    script: 'Default'
+    directory: 'tv'
+    priority: '1'
+  - name: 'books'
+    order: '0'
+    processing: '3'
+    script: 'Default'
+    directory: 'books'
+    priority: '0'
+
+# Plex variables
+plex_version: "1.21.3.4015-a4be9cb8b"
