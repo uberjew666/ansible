@@ -1,0 +1,25 @@
+---
+- name: "Create {{ mount }} directory"
+  become: yes
+  file:
+    state: directory
+    path: "{{ mount }}"
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+
+- name: "Get UUID of {{ mount }}"
+  shell: "lsblk -f | grep {{ label }} | awk '{ print $4 }'"
+  changed_when: false
+  register: uuid
+
+- name: "Add {{ mount }} to fstab"
+  become: yes
+  mount:
+    state: 'mounted'
+    path: "{{ mount }}"
+    src: "UUID={{ uuid.stdout }}"
+    fstype: 'ext4'
+    opts: 'defaults'
+    dump: '0'
+    passno: '0'

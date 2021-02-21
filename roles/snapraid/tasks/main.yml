@@ -1,5 +1,5 @@
 ---
-- name: Add repository
+- name: Add repository and update apt cache
   apt_repository:
     repo: ppa:tikhonov/snapraid
     state: present
@@ -8,7 +8,7 @@
 - name: Install Snapraid
   apt:
     name: snapraid
-    state: present
+    state: latest
 
 - name: Configure Snapraid
   template:
@@ -16,16 +16,20 @@
     dest: /etc/snapraid.conf
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
 
-- name: Create mount folders
-  file:
-    path: "{{ item.mount }}"
-    state: directory
-    mode: 0755
-  with_items:
-    - "{{ snapraid_parity_disks }}"
-    - "{{ snapraid_data_disks }}"
+- name: Include fstab tasks
+  when: snapraid_disks is defined
+  include_role:
+    name: fstab
+  vars:
+    label: "{{ item.name }}"
+    mount: "{{ item.mount }}"
+  loop: "{{ snapraid_disks }}"
 
-- include_tasks: fstab.yml
-  when: disks is defined
+- name: Include mergerfs tasks
+  when: snapraid_disks is defined
+  include_role:
+    name: mergerfs
+  vars:
+    mounts: "{{ snapraid_disks | selectattr('type', '==', 'data') | map(attribute='mount') | list }}"

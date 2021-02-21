@@ -1,12 +1,35 @@
 # Defines the file to use as parity storage
 # It must NOT be in a data disk
 # Format: "parity FILE [,FILE] ..."
-{% for disk in snapraid_parity_disks %}
+{% if snapraid_disks is defined %}
+{% for disk in snapraid_disks | selectattr('type', '==', 'parity') %}
 {% if loop.first %}parity {{ disk.mount }}/snapraid.parity
+{% endif %}
+{% endfor %}
 {% else %}
+parity /mnt/diskp/snapraid.parity
+{% endif %}
+
+# Defines the files to use as additional parity storage.
+# If specified, they enable the multiple failures protection
+# from two to six level of parity.
+# To enable, uncomment one parity file for each level of extra
+# protection required. Start from 2-parity, and follow in order.
+# It must NOT be in a data disk
+# Format: "X-parity FILE [,FILE] ..."
+{% if snapraid_disks is defined %}
+{% for disk in snapraid_disks | selectattr('type', '==', 'parity') %}
+{% if (loop.index > 1 and loop.index <= 6) %}
 {{ loop.index }}-parity {{ disk.mount }}/snapraid.{{ loop.index }}-parity
 {% endif %}
 {% endfor %}
+{% else %}
+#2-parity /mnt/diskq/snapraid.2-parity
+#3-parity /mnt/diskr/snapraid.3-parity
+#4-parity /mnt/disks/snapraid.4-parity
+#5-parity /mnt/diskt/snapraid.5-parity
+#6-parity /mnt/disku/snapraid.6-parity
+{% endif %}
 
 # Defines the files to use as content list
 # You can use multiple specification to store more copies
@@ -15,18 +38,29 @@
 # but each file must be in a different disk
 # Format: "content FILE"
 content /var/snapraid.content
-{% for disk in snapraid_content_disks %}
-content {{ disk }}/snapraid.content
+{% if snapraid_disks is defined %}
+{% for disk in snapraid_disks | selectattr('type', '==', 'data') %}
+content {{ disk.mount }}/snapraid.content
 {% endfor %}
+{% else %}
+content /mnt/disk1/snapraid.content
+content /mnt/disk2/snapraid.content
+{% endif %}
 
 # Defines the data disks to use
 # The name and mount point association is relevant for parity, do not change it
 # WARNING: Adding here your /home, /var or /tmp disks is NOT a good idea!
 # SnapRAID is better suited for files that rarely changes!
 # Format: "data DISK_NAME DISK_MOUNT_POINT"
-{% for disk in snapraid_data_disks %}
+{% if snapraid_disks is defined %}
+{% for disk in snapraid_disks | selectattr('type', '==', 'data') %}
 data {{ disk.name }} {{ disk.mount }}/
 {% endfor %}
+{% else %}
+data d1 /mnt/disk1/
+data d2 /mnt/disk2/
+data d3 /mnt/disk3/
+{% endif %}
 
 # Excludes hidden files and directories (uncomment to enable).
 {% if snapraid_exclude_hidden_files %}
@@ -41,9 +75,15 @@ nohidden
 # Format: "exclude DIR/"
 # Format: "exclude /PATH/FILE"
 # Format: "exclude /PATH/DIR/"
+{% if snapraid_exclude_files is defined %}
 {% for file in snapraid_exclude_files %}
 exclude {{ file }}
 {% endfor %}
+{% else %}
+exclude *.unrecoverable
+exclude /tmp/
+exclude /lost+found/
+{% endif %}
 
 # Defines the block size in kibi bytes (1024 bytes) (uncomment to enable).
 # WARNING: Changing this value is for experts only!
