@@ -1,7 +1,0 @@
----
-- hosts: edgerouters 
-  become: yes
-  become_method: su
-
-  roles:
-      - { role: ubiquiti-ca, tags: ca }

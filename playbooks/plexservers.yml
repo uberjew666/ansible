@@ -38,7 +38,6 @@
     - { role: ddclient, tags: ['ddclient', 'containers'] }
       #- { role: cronjobs, tags: cron }
       #- { role: bandcamp, tags: bandcamp }
-    - { role: ohmyzsh, tags: ohmyzsh }
     - { role: sas2ircu, tags: ['sas2ircu', 'utilities'] }
     - { role: sasutils, tags: ['sasutils', 'utilities'] }
     - { role: speedtest-cli, tags: ['speedtest', 'utilities'] }
