@@ -1,0 +1,54 @@
+[snapraid]
+; path to the snapraid executable (e.g. /bin/snapraid)
+executable = {{ snapraid_executable | default('snapraid') }}
+; path to the snapraid config to be used
+config = {{ snapraid_config | default('snapraid.conf') }}
+; abort operation if there are more deletes than this, set to -1 to disable
+deletethreshold = {{ snapraid_delete_threshold | default(40) }}
+; if you want touch to be ran each time
+touch = {{ snapraid_run_touch | default('false') }}
+
+[logging]
+; logfile to write to, leave empty to disable
+file = {{ snapraid_logfile | default('snapraid.log') }}
+; maximum logfile size in KiB, leave empty for infinite
+maxsize = {{ snapraid_logfile_maxsize | default(5000) }}
+
+[notifications]
+; if you want notifications to be activated
+on = {{ snapraid_notifications | default('true') }}
+; set to false to get full program output via notifications
+short = {{ snapraid_notifications_short | default('true') }}
+
+[email]
+; when to send an email, comma-separated list of [success, error]
+sendon = {{ snapraid_email_sendon | default('success,error') }}
+subject = {{ snapraid_email_subject | default('[SnapRAID] Status Report:') }}
+from = {{ snapraid_email_from | default('') }}
+to = {{ snapraid_email_to | default('') }}
+; maximum email size in KiB
+maxsize = {{ snapraid_email_maxsize | default(500) }}
+
+[smtp]
+host = {{ snapraid_smtp_host | default('') }}
+; leave empty for default port
+port = {{ snapraid_smtp_port | default('') }}
+; set to "true" to activate
+ssl = {{ snapraid_smtp_ssl | default('false') }}
+tls = {{ snapraid_smtp_tls | default('false') }}
+user = {{ snapraid_smtp_user | default('') }}
+password = {{ snapraid_smtp_pass | default('') }}
+
+[telegram]
+; when to send a message, comma-separated list of [success, error]
+sendon = {{ snapraid_telegram_sendon | default('success,error') }}
+; Telegram bot token
+token = {{ snapraid_telegram_token | default('') }}
+; chat_id for telegram bot
+chat_id = {{ snapraid_telegram_chatid | default('') }}
+
+[scrub]
+; set to true to run scrub after sync
+enabled = {{ snapraid_scrub_enabled | default('false') }}
+percentage = {{ snapraid_scrub_percentage | default(12) }}
+older-than = {{ snapraid_scrub_olderthan | default(10) }}
