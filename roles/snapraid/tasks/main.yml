@@ -7,10 +7,12 @@
 
 - name: Install Snapraid
   apt:
-    name: snapraid
-    state: latest
+    name:
+      - snapraid
+      - smartmontools
+    state: present
 
-- name: Configure Snapraid
+- name: Configure snapraid.conf
   template:
     src: snapraid.conf.j2
     dest: /etc/snapraid.conf
@@ -34,13 +36,10 @@
   vars:
     mounts: "{{ snapraid_disks | selectattr('type', '==', 'data') | map(attribute='mount') | list }}"
 
-#- name: Check Snapraid is setup correctly
-#  shell: snapraid status
-#  changed_when: false
-#  register: snapraid_status
+- name: Run sync and create content and parity files
+  shell: snapraid sync
+  args:
+    creates: /var/snapraid.content
 
-#- name: Sync Snapraid
-#  shell: snapraid sync
-#  args:
-#    creates: /var/snapraid.content
-#  when: "'No content file found. Assuming empty.' in snapraid_check.stderr"
+- include_tasks:
+    file: runner.yml

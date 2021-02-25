@@ -88,7 +88,6 @@ snapraid_disks:
   - name: parity-16
     mount: /mnt/disk16
     type: parity
-
 snapraid_exclude_hidden_files: false
 snapraid_exclude_files:
   - "*.bak"
@@ -106,6 +105,16 @@ snapraid_exclude_files:
   - ".AppleDB"
   - "/configs/"
   - "/downloads/"
+snapraid_executable: '/usr/local/bin/snapraid'
+snapraid_config: '/etc/snapraid.conf'
+snapraid_delete_threshold: '40'
+snapraid_run_touch: 'true'
+snapraid_logfile: '/var/log/snapraid.log'
+snapraid_telegram_token: "{{ telegram_bot_token }}"
+snapraid_telegram_chatid: "{{ telegram_chat }}"
+snapraid_scrub_enabled: 'true'
+snapraid_scrub_percentage: '25'
+snapraid_scrub_olderthan: '7'
 
 # MergerFS variables
 mergerfs_version: 2.32.2
