@@ -26,6 +26,7 @@
     volumes:
       - "{{ valheim_user.home }}:/home/steam/valheim"
       - "{{ configs_dir }}/valheim:/home/steam/.config/unity3d/IronGate/Valheim"
+      - "{{ data_dir }}/backups/valheim:/home/steam/backups"
     ports:
       - "0.0.0.0:2456:2456/udp"
       - "0.0.0.0:2457:2457/udp"
@@ -49,6 +50,13 @@
       PASSWORD: "{{ valheim_server_password | default(omit) }}"
       AUTO_UPDATE: "1"
       AUTO_UPDATE_SCHEDULE: "0 5 * * *"
+      AUTO_BACKUP: "1"
+      AUTO_BACKUP_SCHEDULE: "*/15 * * * *"
+      AUTO_BACKUP_REMOVE_OLD: "1"
+      AUTO_BACKUP_DAYS_TO_LIVE: "7"
+      AUTO_BACKUP_ON_UPDATE: "1"
+      AUTO_BACKUP_ON_SHUTDOWN: "1"
+      UPDATE_ON_STARTUP: "1"
     purge_networks: true
     restart_policy: always
 
