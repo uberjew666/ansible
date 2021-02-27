@@ -198,7 +198,7 @@ plex_version: "1.21.3.4015-a4be9cb8b"
 
 # Valheim variables
 valheim_server_password: "{{ vault_valheim_server_password }}"
-valheim_webhook_url: 'https://discord.com/api/webhooks/814924889772261376/qAmFWrVzYx-SqThddt7aEeyBFq54NgXd_3mCra6mLzsERf7Do9xTdlcsVyAqTHibp2IR'
+valheim_webhook_url: "{{ vault_valheim_webhook_url }}"
 
 # Ark variables
 ark_server_password: "{{ vault_ark_server_password }}"
