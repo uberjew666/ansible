@@ -1,10 +1,9 @@
-# log to syslog
 syslog=yes
-
-# get real address
+daemon=1800
 use=web
 web=https://ipinfo.io/ip
 ssl=yes
+cache=/tmp/ddclient.cache
 
 # cloudflare details
 protocol=cloudflare,                              \
