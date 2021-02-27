@@ -22,9 +22,9 @@
   file:
     path: "{{ organizr_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ organizr_user.uid }}"
     group: "{{ organizr_user.group }}"
+    mode: '0755'
 
 - name: Create and start organizr container
   docker_container:

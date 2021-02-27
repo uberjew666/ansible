@@ -20,9 +20,9 @@
   file:
     path: "{{ radarr_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ radarr_user.uid }}"
     group: "{{ radarr_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:

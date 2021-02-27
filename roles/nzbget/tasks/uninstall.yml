@@ -20,5 +20,5 @@
   include_role:
     name: cloudflare-dns
     tasks_from: removal
-  vars: 
+  vars:
     subdomain: nzbget

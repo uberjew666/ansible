@@ -1,10 +1,33 @@
 ---
-- name: Add {{ subdomain }} A record
+- name: Initialise subdomains list
+  set_fact:
+    subdomains: []
+  when: subdomains is undefined
+
+- name: Get public IP address
+  check_mode: no
+  uri:
+    url: https://ipinfo.io/ip
+    return_content: yes
+  register: public_ip
+
+- name: Show public IP address
+  debug:
+    msg: 'Public IP address is {{ public_ip.content }}'
+    verbosity: '1'
+
+- name: Create {{ subdomain }} A record
   cloudflare_dns:
     state: present
     record: "{{ subdomain }}"
     type: A
     zone: "{{ domain }}"
     proxied: false
+    value: "{{ public_ip.content }}"
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_api_token }}"
+
+- name: Add {{ subdomain }} to subdomains list
+  set_fact:
+    subdomains: "{{ subdomains + [ subdomain ] }}"
+    cacheable: true

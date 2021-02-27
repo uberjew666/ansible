@@ -1,6 +1,6 @@
 ---
 - name: Get device name from WWN
-  shell: "lsblk -dn -o WWN,NAME | grep '{{ item.wwn }}' | awk '{ print $2 }'"
+  shell: "set -o pipefail && lsblk -dn -o WWN,NAME | grep '{{ item.wwn }}' | awk '{ print $2 }'"
   register: device_name
   changed_when: false
 

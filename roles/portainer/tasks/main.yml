@@ -19,9 +19,9 @@
   file:
     path: "{{ portainer_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ portainer_user.uid }}"
     group: "{{ portainer_user.group }}"
+    mode: '0755'
 
 - name: Create and start portainer container
   docker_container:

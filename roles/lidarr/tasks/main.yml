@@ -20,9 +20,9 @@
   file:
     path: "{{ lidarr_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ lidarr_user.uid }}"
     group: "{{ lidarr_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
@@ -34,7 +34,7 @@
       - "{{ configs_dir }}/lidarr:/config"
       - "{{ download_dir }}:/downloads"
       - "{{ music_dir }}:/music"
-      - "/etc/localtime:/etc/localtime:ro" 
+      - "/etc/localtime:/etc/localtime:ro"
     networks:
       - name: cloudnet
         aliases:

@@ -11,4 +11,3 @@
     name: sasutils
     state: present
     executable: pip3
-

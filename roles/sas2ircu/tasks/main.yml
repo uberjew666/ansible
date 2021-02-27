@@ -9,7 +9,7 @@
   become: yes
   apt_repository:
     state: present
-    repo: "deb http://hwraid.le-vert.net/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} main"
+    repo: "deb https://hwraid.le-vert.net/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} main"
 
 - name: Update apt cache and install package
   become: yes

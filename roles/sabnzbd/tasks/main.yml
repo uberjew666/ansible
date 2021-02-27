@@ -2,7 +2,7 @@
 - name: Include Cloudflare DNS tasks
   include_role:
     name: cloudflare-dns
-  vars: 
+  vars:
     subdomain: sabnzbd
 
 - name: Create user
@@ -21,9 +21,9 @@
   file:
     state: directory
     path: "{{ sabnzbd_user.home }}"
-    recurse: true
     owner: "{{ sabnzbd_user.uid }}"
     group: "{{ sabnzbd_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
@@ -147,6 +147,7 @@
     section: misc
     option: "{{ item.key }}"
     value: "{{ item.value }}"
+    mode: '0600'
   loop: "{{ sabnzbd_settings | dict2items }}"
   loop_control:
     label: "{{ item.key }}"

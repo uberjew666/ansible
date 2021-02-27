@@ -20,9 +20,9 @@
   file:
     path: "{{ readarr_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ readarr_user.uid }}"
     group: "{{ readarr_user.group }}"
+    mode: '0755'
 
 - name: Create and start hotio container
   docker_container:
@@ -35,7 +35,7 @@
       - "{{ download_dir }}:/downloads"
       - "{{ ebooks_dir }}:/ebooks"
       - "{{ audiobooks_dir }}:/audiobooks"
-      - "/etc/localtime:/etc/localtime:ro" 
+      - "/etc/localtime:/etc/localtime:ro"
     networks:
       - name: cloudnet
         aliases:

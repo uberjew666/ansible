@@ -19,9 +19,9 @@
   file:
     path: "{{ tautulli_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ tautulli_user.uid }}"
     group: "{{ tautulli_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
@@ -31,7 +31,7 @@
     pull: true
     volumes:
       - "{{ configs_dir }}/tautulli:/config"
-      - "{{ configs_dir}}/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro"
+      - "{{ configs_dir }}/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro"
       - "/etc/localtime:/etc/localtime:ro"
     networks:
       - name: cloudnet

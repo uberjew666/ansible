@@ -20,9 +20,9 @@
   file:
     path: "{{ nzbhydra_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ nzbhydra_user.uid }}"
     group: "{{ nzbhydra_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:

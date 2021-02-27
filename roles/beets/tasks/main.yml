@@ -20,9 +20,9 @@
   file:
     path: "{{ beets_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ beets_user.uid }}"
     group: "{{ beets_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
@@ -57,5 +57,4 @@
     healthcheck:
       start_period: 2s
       test: "curl --fail --head --silent http://localhost:8337/ || exit 1"
-      interval: 10s                                                                                            
-
+      interval: 10s

@@ -20,9 +20,9 @@
   file:
     path: "{{ netdata_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ netdata_user.uid }}"
     group: "{{ netdata_user.group }}"
+    mode: '0755'
 
 - name: Create and start netdata container
   docker_container:

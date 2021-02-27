@@ -1,12 +1,13 @@
 ---
 - name: Install Compose binary
   get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version | default('1.13.0') }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
     dest: /usr/local/bin/docker-compose
-    mode: 0755
+    mode: '0755'
 
 - name: Check binary is installed correctly
-  shell: docker-compose -v
+  check_mode: no
+  command: docker-compose -v
   register: shell_output
-  failed_when: "docker_compose_version is not in shell_output.stdout"
+  failed_when: "docker_compose_version|default('1.13.0') is not in shell_output.stdout"
   changed_when: false

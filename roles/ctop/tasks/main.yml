@@ -7,7 +7,7 @@
 
 - name: Check binary is installed correctly
   check_mode: no
-  shell: ctop -v
+  command: ctop -v
   register: shell_output
   failed_when: "ctop_version|default('0.7.5') is not in shell_output.stdout"
   changed_when: false

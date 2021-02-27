@@ -2,7 +2,7 @@
 - name: Include Cloudflare DNS tasks
   include_role:
     name: cloudflare-dns
-  vars: 
+  vars:
     subdomain: nzbget
 
 - name: Create user
@@ -20,9 +20,9 @@
   file:
     path: "{{ nzbget_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ nzbget_user.uid }}"
     group: "{{ nzbget_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:

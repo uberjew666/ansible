@@ -130,7 +130,7 @@ mergerfs_mount_opts:
   - "fsname={{ data_dir }}" # Sets the name of the filesystem as seen in mount, df, etc. Defaults to a list of the source paths concatenated together with the longest common prefix removed
 
 # Docker variables
-docker_compose_version: 1.13.0
+docker_compose_version: 1.28.4
 
 # Sabnzbd variables
 sabnzbd_settings:

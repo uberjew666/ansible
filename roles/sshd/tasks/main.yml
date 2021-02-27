@@ -4,7 +4,7 @@
   package:
     name:
       - "openssh-server"
-    state: latest
+    state: present
 
 - name: Disable password authentication
   become: yes

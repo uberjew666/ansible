@@ -20,9 +20,9 @@
   file:
     path: "{{ plex_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ plex_user.uid }}"
     group: "{{ plex_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
