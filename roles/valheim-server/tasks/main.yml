@@ -57,6 +57,7 @@
       AUTO_BACKUP_ON_UPDATE: "1"
       AUTO_BACKUP_ON_SHUTDOWN: "1"
       UPDATE_ON_STARTUP: "1"
+      WEBHOOK_URL: "{{ valheim_webhook_url | default(omit) }}"
     purge_networks: true
     restart_policy: always
 
