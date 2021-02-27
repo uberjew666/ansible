@@ -110,6 +110,7 @@ snapraid_config: '/etc/snapraid.conf'
 snapraid_delete_threshold: '40'
 snapraid_run_touch: 'true'
 snapraid_logfile: '/var/log/snapraid.log'
+snapraid_email_sendon: ''
 snapraid_telegram_token: "{{ telegram_bot_token }}"
 snapraid_telegram_chatid: "{{ telegram_chat }}"
 snapraid_scrub_enabled: 'true'
