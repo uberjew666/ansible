@@ -13,9 +13,9 @@
   file:
     path: "{{ valheim_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ valheim_user.uid }}"
     group: "{{ valheim_user.group }}"
+    mode: '0755'
 
 - name: Create and start Valheim server container
   docker_container:

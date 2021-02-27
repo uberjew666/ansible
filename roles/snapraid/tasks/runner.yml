@@ -4,6 +4,7 @@
   git:
     repo: 'https://github.com/larssont/snapraid-runner.git'
     dest: /opt/snapraid-runner
+    version: '2b7ed22'
     update: no
 
 - name: Add and configure snapraid-runner.conf

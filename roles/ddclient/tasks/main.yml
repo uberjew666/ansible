@@ -18,9 +18,9 @@
   file:
     path: "{{ ddclient_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ ddclient_user.uid }}"
     group: "{{ ddclient_user.group }}"
+    mode: '0755'
 
 - name: Setup config file
   template:
@@ -52,4 +52,3 @@
       TZ: "{{ timezone }}"
     purge_networks: true
     restart_policy: always
-

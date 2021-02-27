@@ -19,9 +19,9 @@
   file:
     path: "{{ kf2_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ kf2_user.uid }}"
     group: "{{ kf2_user.group }}"
+    mode: '0755'
 
 - name: Create and start kf2server container
   docker_container:

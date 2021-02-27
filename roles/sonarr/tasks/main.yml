@@ -20,9 +20,9 @@
   file:
     path: "{{ sonarr_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ sonarr_user.uid }}"
     group: "{{ sonarr_user.group }}"
+    mode: '0755'
 
 - name: Create and start linuxserver container
   docker_container:
@@ -34,7 +34,7 @@
       - "{{ configs_dir }}/sonarr:/config"
       - "{{ download_dir }}:/downloads"
       - "{{ tv_dir }}:/tv"
-      - "/etc/localtime:/etc/localtime:ro" 
+      - "/etc/localtime:/etc/localtime:ro"
     networks:
       - name: cloudnet
         aliases:

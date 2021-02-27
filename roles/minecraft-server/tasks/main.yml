@@ -19,9 +19,9 @@
   file:
     path: "{{ minecraft_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ minecraft_user.uid }}"
     group: "{{ minecraft_user.group }}"
+    mode: '0755'
 
 - name: Deploy Zanarkand Minecraft Server
   docker_container:

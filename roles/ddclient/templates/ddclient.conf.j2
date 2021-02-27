@@ -13,5 +13,6 @@ login={{ cloudflare_email }},                     \
 password={{ cloudflare_api_token }}               \
 
 # sub domains
-{{ domain }},{% for subdomain in subdomains %}{{ subdomain + '.' + domain }}{% if not loop.last %},{% endif %}
+{{ domain }},{% if subdomains is defined %}{% for subdomain in subdomains | unique %}{{ subdomain + '.' + domain }}{% if not loop.last %},{% endif %}
 {% endfor %}
+{% endif %}

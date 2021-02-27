@@ -9,7 +9,10 @@
     mode: '0755'
 
 - name: "Get UUID of {{ mount }}"
-  shell: "lsblk -f | grep {{ label }} | awk '{ print $4 }'"
+  check_mode: no
+  shell: "set -o pipefail && lsblk -f | grep {{ label }} | awk '{ print $4 }'"
+  args:
+    executable: /bin/bash
   changed_when: false
   register: uuid
 

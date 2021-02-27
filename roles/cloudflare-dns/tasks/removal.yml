@@ -1,0 +1,21 @@
+---
+- name: Remove {{ subdomain }} A record
+  cloudflare_dns:
+    state: absent
+    record: "{{ subdomain }}"
+    type: A
+    zone: "{{ domain }}"
+    proxied: false
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_api_token }}"
+
+- name: Create subdomain removal list
+  set_fact:
+    bad_subdomains:
+      - "{{ subdomain }}"
+    cacheable: no
+
+- name: Remove {{ subdomain }} from subdomains list
+  set_fact:
+    subdomains: "{{ subdomains | difference(bad_subdomains) }}"
+    cacheable: yes

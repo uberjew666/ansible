@@ -19,9 +19,9 @@
   file:
     path: "{{ traefik_auth_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ traefik_auth_user.uid }}"
     group: "{{ traefik_auth_user.group }}"
+    mode: '0755'
 
 - name: Create config.ini file
   copy:

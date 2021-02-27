@@ -14,9 +14,9 @@
   file:
     path: "{{ nginx_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ nginx_user.uid }}"
     group: "{{ nginx_user.group }}"
+    mode: '0755'
 
 - name: Create and start container
   docker_container:

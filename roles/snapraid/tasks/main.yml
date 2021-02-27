@@ -1,11 +1,13 @@
 ---
 - name: Add repository and update apt cache
+  become: yes
   apt_repository:
     repo: ppa:tikhonov/snapraid
     state: present
     update_cache: true
 
 - name: Install Snapraid
+  become: yes
   apt:
     name:
       - snapraid
@@ -13,6 +15,7 @@
     state: present
 
 - name: Configure snapraid.conf
+  become: yes
   template:
     src: snapraid.conf.j2
     dest: /etc/snapraid.conf
@@ -37,7 +40,8 @@
     mounts: "{{ snapraid_disks | selectattr('type', '==', 'data') | map(attribute='mount') | list }}"
 
 - name: Run sync and create content and parity files
-  shell: snapraid sync
+  become: yes
+  command: snapraid sync
   args:
     creates: /var/snapraid.content
 

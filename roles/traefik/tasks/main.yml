@@ -19,9 +19,9 @@
   file:
     path: "{{ traefik_user.home }}"
     state: directory
-    recurse: true
     owner: "{{ traefik_user.uid }}"
     group: "{{ traefik_user.group }}"
+    mode: '0755'
 
 - name: Create TLS settings provider file
   template:
