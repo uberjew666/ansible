@@ -1,7 +1,7 @@
 ---
-- name: Remove {{ subdomain }} A record
+- name: Add {{ subdomain }} A record
   cloudflare_dns:
-    state: absent
+    state: present
     record: "{{ subdomain }}"
     type: A
     zone: "{{ domain }}"
