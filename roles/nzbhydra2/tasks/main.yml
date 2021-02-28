@@ -1,61 +1,61 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: nzbhydra
+    subdomain: 'nzbhydra'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: nzbhydra
-    group: "{{ media_group }}"
-    system: true
-    comment: "NZBhydra container system user"
-    create_home: false
-    home: "{{ configs_dir }}/nzbhydra"
-    shell: "/usr/sbin/nologin"
-  register: nzbhydra_user
+    state: 'present'
+    name: 'nzbhydra'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'NZBhydra container system user'
+    create_home: no
+    home: '{{ configs_dir }}/nzbhydra'
+    shell: '/usr/sbin/nologin'
+  register: 'nzbhydra_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ nzbhydra_user.home }}"
-    state: directory
-    owner: "{{ nzbhydra_user.uid }}"
-    group: "{{ nzbhydra_user.group }}"
+    state: 'directory'
+    path: '{{ nzbhydra_user.home }}'
+    owner: '{{ nzbhydra_user.uid }}'
+    group: '{{ nzbhydra_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: started
-    name: nzbhydra
-    image: linuxserver/nzbhydra2:latest
-    pull: true
+    state: 'started'
+    name: 'nzbhydra'
+    image: 'linuxserver/nzbhydra2:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/hydra:/config"
-      - "{{ download_dir }}:/downloads"
+      - '{{ configs_dir }}/hydra:/config'
+      - '{{ download_dir }}:/downloads'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - nzbhydra
-    networks_cli_compatible: true
+          - 'nzbhydra'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.nzbhydra.service: "nzbhydra"
-      traefik.http.routers.nzbhydra.rule: "Host(`nzbhydra.{{ domain }}`)"
-      traefik.http.routers.nzbhydra.tls: "true"
-      traefik.http.routers.nzbhydra.tls.certresolver: "letsencrypt"
-      traefik.http.routers.nzbhydra.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.nzbhydra.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.nzbhydra.loadbalancer.server.port: "5076"
+      traefik.enable: 'true'
+      traefik.http.routers.nzbhydra.service: 'nzbhydra'
+      traefik.http.routers.nzbhydra.rule: 'Host(`nzbhydra.{{ domain }}`)'
+      traefik.http.routers.nzbhydra.tls: 'true'
+      traefik.http.routers.nzbhydra.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.nzbhydra.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.nzbhydra.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.nzbhydra.loadbalancer.server.port: '5076'
     env:
-      PUID: "{{ nzbhydra_user.uid }}"
-      PGID: "{{ nzbhydra_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ nzbhydra_user.uid }}'
+      PGID: '{{ nzbhydra_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --head --silent http://localhost:5076/ || exit 1"
-      interval: 10s
-
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:5076/ || exit 1'
+      interval: '10s'

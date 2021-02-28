@@ -1,34 +1,34 @@
 ---
-- name: Install prerequisites
+- name: 'Install prerequisites'
   apt:
+    state: 'present'
     name:
-      - "parted"
-      - "xfsprogs"
-      - "btrfs-tools"
-    state: present
+      - 'parted'
+      - 'xfsprogs'
+      - 'btrfs-tools'
 
-- name: Check partition
+- name: 'Check partition'
   parted:
-    state: info
-    device: /dev/sdd
-  register: disk
+    state: 'info'
+    device: '/dev/sdd'
+  register: 'disk'
 
-- name: Create partition
+- name: 'Create partition'
   parted:
-    state: present
-    device: /dev/sdd
-    number: 1
-    label: gpt
-    name: primary
+    state: 'present'
+    device: '/dev/sdd'
+    number: '1'
+    label: 'gpt'
+    name: 'primary'
     part_start: '0%'
     part_end: '100%'
-  register: new_disk
+  register: 'new_disk'
 
 - debug:
-    var: disk
+    var: 'disk'
 
 - debug:
-    var: new_disk
+    var: 'new_disk'
 
 # - name: Format new partitions
 #   filesystem:

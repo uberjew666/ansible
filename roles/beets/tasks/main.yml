@@ -1,60 +1,61 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: beets
+    subdomain: 'beets'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: beets
-    group: "{{ media_group }}"
-    system: true
-    comment: "Beets container system user"
-    create_home: false
-    home: "{{ configs_dir }}/beets"
-    shell: "/usr/sbin/nologin"
-  register: beets_user
+    state: 'present'
+    name: 'beets'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'Beets container system user'
+    create_home: no
+    home: '{{ configs_dir }}/beets'
+    shell: '/usr/sbin/nologin'
+  register: 'beets_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ beets_user.home }}"
-    state: directory
-    owner: "{{ beets_user.uid }}"
-    group: "{{ beets_user.group }}"
+    state: 'directory'
+    path: '{{ beets_user.home }}'
+    owner: '{{ beets_user.uid }}'
+    group: '{{ beets_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: absent
-    name: beets
-    image: linuxserver/beets:latest
-    pull: true
+    state: 'absent'
+    name: 'beets'
+    image: 'linuxserver/beets:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/beets:/config"
-      - "{{ download_dir }}:/downloads"
-      - "{{ music_dir }}:/music"
+      - '{{ configs_dir }}/beets:/config'
+      - '{{ download_dir }}:/downloads'
+      - '{{ music_dir }}:/music'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - beets
-    networks_cli_compatible: true
+          - 'beets'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.beets.rule: "Host(`beets.{{ domain }}`)"
-      traefik.http.routers.beets.tls: "true"
-      traefik.http.routers.beets.tls.certresolver: "letsencrypt"
-      traefik.http.routers.beets.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.beets.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.beets.loadbalancer.server.port: "8337"
+      traefik.enable: 'true'
+      traefik.http.routers.beets.rule: 'Host(`beets.{{ domain }}`)'
+      traefik.http.routers.beets.tls: 'true'
+      traefik.http.routers.beets.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.beets.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.beets.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.beets.loadbalancer.server.port: '8337'
     env:
-      PUID: "{{ beets_user.uid }}"
-      PGID: "{{ beets_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ beets_user.uid }}'
+      PGID: '{{ beets_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --head --silent http://localhost:8337/ || exit 1"
-      interval: 10s
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:8337/ || exit 1'
+      interval: '10s'

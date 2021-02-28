@@ -1,80 +1,80 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: kf2
+    subdomain: 'kf2'
 
-- name: Create kf2 user
+- name: 'Create kf2 user'
   user:
-    name: kf2
-    system: true
-    comment: "Killing Floor 2 container system user"
-    create_home: false
-    home: "{{ games_dir }}/kf2server"
-    shell: "/usr/sbin/nologin"
-  register: kf2_user
+    state: 'present'
+    name: 'kf2'
+    system: yes
+    comment: 'Killing Floor 2 container system user'
+    create_home: no
+    home: '{{ games_dir }}/kf2server'
+    shell: '/usr/sbin/nologin'
+  register: 'kf2_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ kf2_user.home }}"
-    state: directory
-    owner: "{{ kf2_user.uid }}"
-    group: "{{ kf2_user.group }}"
+    state: 'directory'
+    path: '{{ kf2_user.home }}'
+    owner: '{{ kf2_user.uid }}'
+    group: '{{ kf2_user.group }}'
     mode: '0755'
 
-- name: Create and start kf2server container
+- name: 'Create and start kf2server container'
   docker_container:
-    state: started
-    name: kf2server
-    image: dwurf/docker-kf2:latest
-    command: validate
-    pull: true
+    state: 'started'
+    name: 'kf2server'
+    image: 'dwurf/docker-kf2:latest'
+    command: 'validate'
+    pull: yes
     volumes:
-      - "{{ games_dir }}/kf2server:/home/steam/kf2server"
+      - '{{ games_dir }}/kf2server:/home/steam/kf2server'
     ports:
-      - "0.0.0.0:20560:20560/udp"
-      - "0.0.0.0:27015:27015/udp"
-      - "0.0.0.0:7777:7777/udp"
+      - '0.0.0.0:20560:20560/udp'
+      - '0.0.0.0:27015:27015/udp'
+      - '0.0.0.0:7777:7777/udp'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - kf2server
-    networks_cli_compatible: true
+          - 'kf2server'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.kf2.service: "kf2"
-      traefik.http.routers.kf2.rule: "Host(`kf2.{{ domain }}`)"
-      traefik.http.routers.kf2.tls: "true"
-      traefik.http.routers.kf2.tls.certresolver: "letsencrypt"
-      traefik.http.routers.kf2.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.kf2.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.kf2.loadbalancer.server.port: "8080"
+      traefik.enable: 'true'
+      traefik.http.routers.kf2.service: 'kf2'
+      traefik.http.routers.kf2.rule: 'Host(`kf2.{{ domain }}`)'
+      traefik.http.routers.kf2.tls: 'true'
+      traefik.http.routers.kf2.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.kf2.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.kf2.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.kf2.loadbalancer.server.port: '8080'
     env:
-      PUID: "{{ kf2_user.uid }}"
-      PGID: "{{ kf2_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-      KF_DIFFICULTY: "1"
-      KF_GAME_LENGTH: "1"
-      KF_SERVER_NAME: "Mook"
-      KF_MOTD: "Matt is the imposter. Shoot him."
-      KF_GAME_PASS: "{{ kf2_server_password }}"
-      KF_MAP: "{{ kf2_server_maps | random }}"
-      KF_GAME_MODE: "Survival?Mutator=KFMutator.KFMutator_MaxPlayersV2?MaxPlayers=10"
-      KF_DISABLE_TAKEOVER: "true"
-      KF_ENABLE_WEB: "true"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ kf2_user.uid }}'
+      PGID: '{{ kf2_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+      KF_DIFFICULTY: '1'
+      KF_GAME_LENGTH: '1'
+      KF_SERVER_NAME: 'Mook'
+      KF_MOTD: 'Matt is the imposter. Shoot him.'
+      KF_GAME_PASS: '{{ kf2_server_password }}'
+      KF_MAP: '{{ kf2_server_maps | random }}'
+      KF_GAME_MODE: 'Survival?Mutator=KFMutator.KFMutator_MaxPlayersV2?MaxPlayers=10'
+      KF_DISABLE_TAKEOVER: 'true'
+      KF_ENABLE_WEB: 'true'
+    purge_networks: yes
+    restart_policy: 'always'
 
-- name: Allow kf2server server ports through firewall
+- name: 'Allow kf2server server ports through firewall'
   ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: udp
-    comment: "Killing Floor 2 Dedicated Server"
+    rule: 'allow'
+    port: '{{ item }}'
+    proto: 'udp'
+    comment: 'Killing Floor 2 Dedicated Server'
   loop:
-    - "20560"
-    - "27105"
-    - "7777"
-
+    - '20560'
+    - '27105'
+    - '7777'

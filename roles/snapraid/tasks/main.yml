@@ -1,49 +1,49 @@
 ---
-- name: Add repository and update apt cache
+- name: 'Add repository and update apt cache'
   become: yes
   apt_repository:
-    repo: ppa:tikhonov/snapraid
-    state: present
-    update_cache: true
+    state: 'present'
+    repo: 'ppa:tikhonov/snapraid'
+    update_cache: yes
 
-- name: Install Snapraid
+- name: 'Install Snapraid'
   become: yes
   apt:
+    state: 'present'
     name:
-      - snapraid
-      - smartmontools
-    state: present
+      - 'snapraid'
+      - 'smartmontools'
 
-- name: Configure snapraid.conf
+- name: 'Configure snapraid.conf'
   become: yes
   template:
-    src: snapraid.conf.j2
-    dest: /etc/snapraid.conf
-    owner: root
-    group: root
+    src: 'snapraid.conf.j2'
+    dest: '/etc/snapraid.conf'
+    owner: 'root'
+    group: 'root'
     mode: '0640'
 
-- name: Include fstab tasks
-  when: snapraid_disks is defined
+- name: 'Include fstab tasks'
+  when: 'snapraid_disks is defined'
   include_role:
-    name: fstab
+    name: 'fstab'
   vars:
-    label: "{{ item.name }}"
-    mount: "{{ item.mount }}"
-  loop: "{{ snapraid_disks }}"
+    label: '{{ item.name }}'
+    mount: '{{ item.mount }}'
+  loop: '{{ snapraid_disks }}'
 
-- name: Include mergerfs tasks
-  when: snapraid_disks is defined
+- name: 'Include mergerfs tasks'
+  when: 'snapraid_disks is defined'
   include_role:
-    name: mergerfs
+    name: 'mergerfs'
   vars:
-    mounts: "{{ snapraid_disks | selectattr('type', '==', 'data') | map(attribute='mount') | list }}"
+    mounts: '{{ snapraid_disks | selectattr("type", "==", "data") | map(attribute="mount") | list }}'
 
-- name: Run sync and create content and parity files
+- name: 'Run sync and create content and parity files'
   become: yes
-  command: snapraid sync
+  command: 'snapraid sync'
   args:
-    creates: /var/snapraid.content
+    creates: '/var/snapraid.content'
 
 - include_tasks:
-    file: runner.yml
+    file: 'runner.yml'

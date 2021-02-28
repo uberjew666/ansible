@@ -1,63 +1,63 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: sonarr
+    subdomain: 'sonarr'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: sonarr
-    group: "{{ media_group }}"
-    system: true
-    comment: "Sonarr container system user"
-    create_home: false
-    home: "{{ configs_dir }}/sonarr"
-    shell: "/usr/sbin/nologin"
-  register: sonarr_user
+    state: 'present'
+    name: 'sonarr'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'Sonarr container system user'
+    create_home: no
+    home: '{{ configs_dir }}/sonarr'
+    shell: '/usr/sbin/nologin'
+  register: 'sonarr_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ sonarr_user.home }}"
-    state: directory
-    owner: "{{ sonarr_user.uid }}"
-    group: "{{ sonarr_user.group }}"
+    state: 'directory'
+    path: '{{ sonarr_user.home }}'
+    owner: '{{ sonarr_user.uid }}'
+    group: '{{ sonarr_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: started
-    name: sonarr
-    image: linuxserver/sonarr:preview
-    pull: true
+    state: 'started'
+    name: 'sonarr'
+    image: 'linuxserver/sonarr:preview'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/sonarr:/config"
-      - "{{ download_dir }}:/downloads"
-      - "{{ tv_dir }}:/tv"
-      - "/etc/localtime:/etc/localtime:ro"
+      - '{{ configs_dir }}/sonarr:/config'
+      - '{{ download_dir }}:/downloads'
+      - '{{ tv_dir }}:/tv'
+      - '/etc/localtime:/etc/localtime:ro'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - sonarr
-    networks_cli_compatible: true
+          - 'sonarr'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.sonarr.service: "sonarr"
-      traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ domain }}`)"
-      traefik.http.routers.sonarr.tls: "true"
-      traefik.http.routers.sonarr.tls.certresolver: "letsencrypt"
-      traefik.http.routers.sonarr.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.sonarr.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.sonarr.loadbalancer.server.port: "8989"
+      traefik.enable: 'true'
+      traefik.http.routers.sonarr.service: 'sonarr'
+      traefik.http.routers.sonarr.rule: 'Host(`sonarr.{{ domain }}`)'
+      traefik.http.routers.sonarr.tls: 'true'
+      traefik.http.routers.sonarr.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.sonarr.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.sonarr.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.sonarr.loadbalancer.server.port: '8989'
     env:
-      PUID: "{{ sonarr_user.uid }}"
-      PGID: "{{ sonarr_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ sonarr_user.uid }}'
+      PGID: '{{ sonarr_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --head --silent http://localhost:8989/ || exit 1"
-      interval: 10s
-
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:8989/ || exit 1'
+      interval: '10s'

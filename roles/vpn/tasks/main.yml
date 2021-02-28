@@ -1,25 +1,25 @@
 ---
-- name: Create and start VPN container
+- name: 'Create and start VPN container'
   docker_container:
     state: 'started'
     name: 'vpn'
     image: 'qmcgaw/gluetun:v3.11.1'
-    pull: true
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/vpn:/gluetun"
+      - '{{ configs_dir }}/vpn:/gluetun'
     ports:
-      - "127.0.0.1:8888:8888/tcp"
+      - '127.0.0.1:8888:8888/tcp'
     labels:
       traefik.enable: 'false'
     env:
-      VPNSP: "{{ vpn_service_provider }}"
-      REGION: "{{ vpn_region }}"
-      OPENVPN_USER: "{{ vpn_openvpn_user }}"
-      OPENVPN_PASSWORD: "{{ vpn_openvpn_password }}"
+      VPNSP: '{{ vpn_service_provider }}'
+      REGION: '{{ vpn_region }}'
+      OPENVPN_USER: '{{ vpn_openvpn_user }}'
+      OPENVPN_PASSWORD: '{{ vpn_openvpn_password }}'
       HTTPPROXY: 'on'
       HTTPPROXY_STEALTH: 'on'
       UPDATE_PERIOD: '24h'
     capabilities:
-      - "NET_ADMIN"
-    purge_networks: true
+      - 'NET_ADMIN'
+    purge_networks: yes
     restart_policy: 'always'

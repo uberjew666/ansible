@@ -1,61 +1,62 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: radarr
+    subdomain: 'radarr'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: radarr
-    group: "{{ media_group }}"
-    system: true
-    comment: "Radarr container system user"
-    create_home: false
-    home: "{{ configs_dir }}/radarr"
-    shell: "/usr/sbin/nologin"
-  register: radarr_user
+    state: 'present'
+    name: 'radarr'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'Radarr container system user'
+    create_home: no
+    home: '{{ configs_dir }}/radarr'
+    shell: '/usr/sbin/nologin'
+  register: 'radarr_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ radarr_user.home }}"
-    state: directory
-    owner: "{{ radarr_user.uid }}"
-    group: "{{ radarr_user.group }}"
+    state: 'directory'
+    path: '{{ radarr_user.home }}'
+    owner: '{{ radarr_user.uid }}'
+    group: '{{ radarr_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: started
-    name: radarr
-    image: linuxserver/radarr:latest
-    pull: true
+    state: 'started'
+    name: 'radarr'
+    image: 'linuxserver/radarr:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/radarr:/config"
-      - "{{ download_dir }}:/downloads"
-      - "{{ movies_dir }}:/movies"
-      - "/etc/localtime:/etc/localtime:ro"
+      - '{{ configs_dir }}/radarr:/config'
+      - '{{ download_dir }}:/downloads'
+      - '{{ movies_dir }}:/movies'
+      - '/etc/localtime:/etc/localtime:ro'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - radarr
-    networks_cli_compatible: true
+          - 'radarr'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.radarr.rule: "Host(`radarr.{{ domain }}`)"
-      traefik.http.routers.radarr.tls: "true"
-      traefik.http.routers.radarr.tls.certresolver: "letsencrypt"
-      traefik.http.routers.radarr.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.radarr.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.radarr.loadbalancer.server.port: "7878"
+      traefik.enable: 'true'
+      traefik.http.routers.radarr.rule: 'Host(`radarr.{{ domain }}`)'
+      traefik.http.routers.radarr.tls: 'true'
+      traefik.http.routers.radarr.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.radarr.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.radarr.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.radarr.loadbalancer.server.port: '7878'
     env:
-      PUID: "{{ radarr_user.uid }}"
-      PGID: "{{ radarr_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ radarr_user.uid }}'
+      PGID: '{{ radarr_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --head --silent http://localhost:7878/movies/ || exit 1"
-      interval: 10s
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:7878/movies/ || exit 1'
+      interval: '10s'

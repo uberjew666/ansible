@@ -1,24 +1,24 @@
 ---
-- name: Stop and remove container
+- name: 'Stop and remove container'
   docker_container:
-    state: absent
-    name: nzbget
-    image: linuxserver/nzbget:latest
+    state: 'absent'
+    name: 'nzbget'
+    image: 'linuxserver/nzbget:latest'
 
-- name: Remove container image
+- name: 'Remove container image'
   docker_image:
-    state: absent
-    name: linuxserver/nzbget:latest
+    state: 'absent'
+    name: 'linuxserver/nzbget:latest'
 
-- name: Remove user
+- name: 'Remove user'
   user:
-    state: absent
-    name: nzbget
-  register: nzbget_user
+    state: 'absent'
+    name: 'nzbget'
+  register: 'nzbget_user'
 
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
-    tasks_from: removal
+    name: 'cloudflare-dns'
+    tasks_from: 'removal'
   vars:
-    subdomain: nzbget
+    subdomain: 'nzbget'

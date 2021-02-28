@@ -1,69 +1,70 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: netdata
+    subdomain: 'netdata'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: netdata
-    group: docker
-    system: true
-    comment: "Netdata container system user"
-    create_home: false
-    home: "{{ configs_dir }}/netdata"
-    shell: "/usr/sbin/nologin"
-  register: netdata_user
+    state: 'present'
+    name: 'netdata'
+    group: 'docker'
+    system: yes
+    comment: 'Netdata container system user'
+    create_home: no
+    home: '{{ configs_dir }}/netdata'
+    shell: '/usr/sbin/nologin'
+  register: 'netdata_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ netdata_user.home }}"
-    state: directory
-    owner: "{{ netdata_user.uid }}"
-    group: "{{ netdata_user.group }}"
+    state: 'directory'
+    path: '{{ netdata_user.home }}'
+    owner: '{{ netdata_user.uid }}'
+    group: '{{ netdata_user.group }}'
     mode: '0755'
 
-- name: Create and start netdata container
+- name: 'Create and start netdata container'
   docker_container:
-    state: started
-    name: netdata
-    image: netdata/netdata:latest
-    pull: true
+    state: 'started'
+    name: 'netdata'
+    image: 'netdata/netdata:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/netdata:/etc/netdata"
-      - "netdatalib:/var/lib/netdata"
-      - "netdatacache:/var/cache/netdata"
-      - "/etc/passwd:/host/etc/passwd:ro"
-      - "/etc/group:/host/etc/group:ro"
-      - "/proc:/host/proc:ro"
-      - "/sys:/host/sys:ro"
-      - "/etc/os-release:/host/etc/os-release:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - '{{ configs_dir }}/netdata:/etc/netdata'
+      - 'netdatalib:/var/lib/netdata'
+      - 'netdatacache:/var/cache/netdata'
+      - '/etc/passwd:/host/etc/passwd:ro'
+      - '/etc/group:/host/etc/group:ro'
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+      - '/etc/os-release:/host/etc/os-release:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - netdata
-    networks_cli_compatible: true
+          - 'netdata'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.netdata.service: "netdata"
-      traefik.http.routers.netdata.rule: "Host(`netdata.{{ domain }}`)"
-      traefik.http.routers.netdata.tls: "true"
-      traefik.http.routers.netdata.tls.certresolver: "letsencrypt"
-      traefik.http.routers.netdata.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.netdata.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.netdata.loadbalancer.server.port: "19999"
+      traefik.enable: 'true'
+      traefik.http.routers.netdata.service: 'netdata'
+      traefik.http.routers.netdata.rule: 'Host(`netdata.{{ domain }}`)'
+      traefik.http.routers.netdata.tls: 'true'
+      traefik.http.routers.netdata.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.netdata.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.netdata.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.netdata.loadbalancer.server.port: '19999'
     env:
-      PUID: "{{ netdata_user.uid }}"
-      PGID: "{{ netdata_user.group }}"
-    purge_networks: true
+      PUID: '{{ netdata_user.uid }}'
+      PGID: '{{ netdata_user.group }}'
+    purge_networks: yes
     capabilities:
-      - "SYS_PTRACE"
+      - 'SYS_PTRACE'
     security_opts:
-      - "apparmor=unconfined"
-    restart_policy: always
+      - 'apparmor=unconfined'
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --silent http://localhost:19999/api/v1/info > /dev/null || exit 1"
-      interval: 10s
+      start_period: '2s'
+      test: 'curl --fail --silent http://localhost:19999/api/v1/info > /dev/null || exit 1'
+      interval: '10s'

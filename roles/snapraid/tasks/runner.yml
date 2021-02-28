@@ -1,30 +1,30 @@
 ---
-- name: Clone snapraid-runner repository
+- name: 'Clone snapraid-runner repository'
   become: yes
   git:
     repo: 'https://github.com/larssont/snapraid-runner.git'
-    dest: /opt/snapraid-runner
+    dest: '/opt/snapraid-runner'
     version: '2b7ed22'
     update: no
 
-- name: Add and configure snapraid-runner.conf
+- name: 'Add and configure snapraid-runner.conf'
   become: yes
   template:
-    src: snapraid-runner.conf.j2
-    dest: /opt/snapraid-runner/snapraid-runner.conf
-    owner: root
-    group: root
+    src: 'snapraid-runner.conf.j2'
+    dest: '/opt/snapraid-runner/snapraid-runner.conf'
+    owner: 'root'
+    group: 'root'
     mode: '0640'
 
-- name: Set snapraid-runner.py as executable
+- name: 'Set snapraid-runner.py as executable'
   file:
-    path: /opt/snapraid-runner/snapraid-runner.py
+    path: '/opt/snapraid-runner/snapraid-runner.py'
     mode: '0755'
 
-- name: Add nightly cronjob for snapraid-runner
+- name: 'Add nightly cronjob for snapraid-runner'
   cron:
+    state: 'present'
     name: 'snapraid-runner'
-    state: present
     minute: '0'
     hour: '1'
     job: '/opt/snapraid-runner/snapraid-runner.py -c /opt/snapraid-runner/snapraid-runner.conf'

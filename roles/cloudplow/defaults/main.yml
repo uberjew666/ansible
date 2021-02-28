@@ -10,7 +10,7 @@ cloudplow_config:
   hidden:
     '/mnt/local/.unionfs-fuse':
       hidden_remotes:
-        - "google"
+        - 'google'
 
   notifications: {}
 
@@ -39,11 +39,11 @@ cloudplow_config:
     google:
       hidden_remote: 'google:'
       rclone_excludes:
-        - "**partial~"
-        - "**_HIDDEN~"
-        - ".unionfs/**"
-        - ".unionfs-fuse/**"
-        - "**.fuse_hidden**"
+        - '**partial~'
+        - '**_HIDDEN~'
+        - '.unionfs/**'
+        - '.unionfs-fuse/**'
+        - '**.fuse_hidden**'
       rclone_extras:
         '--checkers': 16
         '--drive-chunk-size': '64M'
@@ -62,7 +62,7 @@ cloudplow_config:
           count: 15
           sleep: 25
           timeout: 140
-      rclone_command: move
+      rclone_command: 'move'
       remove_empty_dir_depth: 2
       sync_remote: 'google:/Media'
       upload_folder: '/mnt/local/Media'
@@ -77,13 +77,13 @@ cloudplow_config:
       exclude_open_files: 'true'
       max_size_gb: 200
       opened_excludes:
-        - "/downloads/"
+        - '/downloads/'
       schedule:
         allowed_from: '04:00'
         allowed_until: '08:00'
         enabled: 'false'
       size_excludes:
-        - "downloads/*"
+        - 'downloads/*'
       service_account_path: '/home/user/.config/cloudplow/service_accounts/'
       mover:
         enabled: 'false'
@@ -97,4 +97,3 @@ cloudplow_config:
           '--no-traverse': 'null'
           '--drive-server-side-across-configs': 'null'
           '--user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36'
-

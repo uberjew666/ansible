@@ -1,6 +1,5 @@
 ---
-- name: Enable firewall with logging
+- name: 'Enable firewall with logging'
   ufw:
-    state: enabled
+    state: 'enabled'
     logging: 'on'
-

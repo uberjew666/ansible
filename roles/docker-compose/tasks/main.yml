@@ -1,13 +1,15 @@
 ---
-- name: Install Compose binary
+- name: 'Install Compose binary'
   get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version | default('1.13.0') }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
-    dest: /usr/local/bin/docker-compose
+    url: 'https://github.com/docker/compose/releases/download/{{ docker_compose_version|default("1.13.0") }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+    dest: '/usr/local/bin/docker-compose'
     mode: '0755'
 
-- name: Check binary is installed correctly
+- name: 'Check binary is installed correctly'
+  changed_when: no
+  failed_when: 'docker_compose_version|default("1.13.0") is not in shell_output.stdout'
   check_mode: no
-  command: docker-compose -v
-  register: shell_output
-  failed_when: "docker_compose_version|default('1.13.0') is not in shell_output.stdout"
-  changed_when: false
+  command:
+  args:
+    cmd: 'docker-compose -v'
+  register: 'shell_output'

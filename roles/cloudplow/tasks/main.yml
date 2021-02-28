@@ -1,9 +1,8 @@
 ---
-- name: Deploy cloudplow config
+- name: 'Deploy cloudplow config'
   template:
-    src: config.json.j2
-    dest: /home/simon/config.json
-    owner: simon
-    group: "{{ media_group }}"
+    src: 'config.json.j2'
+    dest: '/home/simon/config.json'
+    owner: 'simon'
+    group: '{{ media_group }}'
     mode: '0640'
-

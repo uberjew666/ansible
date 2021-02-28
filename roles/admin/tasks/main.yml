@@ -1,8 +1,8 @@
 ---
-- name: Remove dangling images
+- name: 'Remove dangling images'
   docker_prune:
-    images: true
+    images: yes
     images_filters:
-      dangling: true
-    timeout: 300
-  tags: prune
+      dangling: yes
+    timeout: '300'
+  tags: 'prune'

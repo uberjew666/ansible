@@ -1,12 +1,10 @@
 ---
-- name: Include install tasks
+- name: 'Include install tasks'
+  when: 'nzbget.enabled | default(false) |bool'
   include_tasks:
-    file: install.yml
-  when:
-    - "nzbget.enabled | default('false') |bool"
+    file: 'install.yml'
 
-- name: Include uninstall tasks
+- name: 'Include uninstall tasks'
+  when: 'not nzbget.enabled | default(false) |bool'
   include_tasks:
-    file: uninstall.yml
-  when:
-    - "not nzbget.enabled | default('false') |bool"
+    file: 'uninstall.yml'

@@ -1,61 +1,61 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: transmission
+    subdomain: 'transmission'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: transmission
-    group: "{{ media_group }}"
-    system: true
-    comment: "Transmission container system user"
-    create_home: false
-    home: "{{ configs_dir }}/transmission"
-    shell: "/usr/sbin/nologin"
-  register: transmission_user
+    state: 'present'
+    name: 'transmission'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'Transmission container system user'
+    create_home: no
+    home: '{{ configs_dir }}/transmission'
+    shell: '/usr/sbin/nologin'
+  register: 'transmission_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ transmission_user.home }}"
-    state: directory
-    owner: "{{ transmission_user.uid }}"
-    group: "{{ transmission_user.group }}"
+    state: 'directory'
+    path: '{{ transmission_user.home }}'
+    owner: '{{ transmission_user.uid }}'
+    group: '{{ transmission_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: started
-    name: transmission
-    image: linuxserver/transmission:latest
-    pull: true
+    state: 'started'
+    name: 'transmission'
+    image: 'linuxserver/transmission:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/transmission:/config"
-      - "{{ download_dir }}:/downloads"
+      - '{{ configs_dir }}/transmission:/config'
+      - '{{ download_dir }}:/downloads'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - transmission
-    networks_cli_compatible: true
+          - 'transmission'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.transmission.service: "transmission"
-      traefik.http.routers.transmission.rule: "Host(`transmission.{{ domain }}`)"
-      traefik.http.routers.transmission.tls: "true"
-      traefik.http.routers.transmission.tls.certresolver: "letsencrypt"
-      traefik.http.routers.transmission.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.transmission.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.transmission.loadbalancer.server.port: "9091"
+      traefik.enable: 'true'
+      traefik.http.routers.transmission.service: 'transmission'
+      traefik.http.routers.transmission.rule: 'Host(`transmission.{{ domain }}`)'
+      traefik.http.routers.transmission.tls: 'true'
+      traefik.http.routers.transmission.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.transmission.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.transmission.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.transmission.loadbalancer.server.port: '9091'
     env:
-      PUID: "{{ transmission_user.uid }}"
-      PGID: "{{ transmission_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ transmission_user.uid }}'
+      PGID: '{{ transmission_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --fail --head --silent http://localhost:9091/transmission || exit 1"
-      interval: 10s
-
+      start_period: '2s'
+      test: 'curl --fail --head --silent http://localhost:9091/transmission || exit 1'
+      interval: '10s'
