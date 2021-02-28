@@ -1,74 +1,75 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: auth
+    subdomain: 'auth'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: traefik-auth
-    system: true
-    comment: "Traefik Forward Auth container system user"
-    create_home: false
-    home: "{{ configs_dir }}/traefik-forward-auth"
-    shell: "/usr/sbin/nologin"
-  register: traefik_auth_user
+    state: 'present'
+    name: 'traefik-auth'
+    system: yes
+    comment: 'Traefik Forward Auth container system user'
+    create_home: no
+    home: '{{ configs_dir }}/traefik-forward-auth'
+    shell: '/usr/sbin/nologin'
+  register: 'traefik_auth_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ traefik_auth_user.home }}"
-    state: directory
-    owner: "{{ traefik_auth_user.uid }}"
-    group: "{{ traefik_auth_user.group }}"
+    state: 'directory'
+    path: '{{ traefik_auth_user.home }}'
+    owner: '{{ traefik_auth_user.uid }}'
+    group: '{{ traefik_auth_user.group }}'
     mode: '0755'
 
-- name: Create config.ini file
+- name: 'Create config.ini file'
   copy:
-    src: config.ini
-    dest: "{{ traefik_auth_user.home }}/config.ini"
-    owner: "{{ traefik_auth_user.uid }}"
-    group: "{{ traefik_auth_user.group }}"
+    src: 'config.ini'
+    dest: '{{ traefik_auth_user.home }}/config.ini'
+    owner: '{{ traefik_auth_user.uid }}'
+    group: '{{ traefik_auth_user.group }}'
     mode: '0644'
 
-- name: Create and start Traefik Forward Auth container
+- name: 'Create and start Traefik Forward Auth container'
   docker_container:
-    state: started
-    name: traefik-forward-auth
-    image: thomseddon/traefik-forward-auth:2.2
-    pull: true
+    state: 'started'
+    name: 'traefik-forward-auth'
+    image: 'thomseddon/traefik-forward-auth:2.2'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/traefik-forward-auth/config.ini:/config.ini:ro"
+      - '{{ configs_dir }}/traefik-forward-auth/config.ini:/config.ini:ro'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - traefik-forward-auth
-    networks_cli_compatible: true
+          - 'traefik-forward-auth'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.docker.network: "cloudnet"
-      traefik.http.routers.traefik-forward-auth.rule: "Host(`auth.{{ domain }}`)"
-      traefik.http.routers.traefik-forward-auth.tls: "true"
-      traefik.http.routers.traefik-forward-auth.tls.certresolver: "letsencrypt"
-      traefik.http.routers.traefik-forward-auth.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.traefik-forward-auth.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.traefik-forward-auth.loadbalancer.server.port: "4181"
-      traefik.http.middlewares.traefik-forward-auth.forwardauth.address: "http://traefik-forward-auth:4181"
-      traefik.http.middlewares.traefik-forward-auth.forwardauth.trustForwardHeader: "true"
-      traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders: "X-Forwarded-User"
+      traefik.enable: 'true'
+      traefik.docker.network: 'cloudnet'
+      traefik.http.routers.traefik-forward-auth.rule: 'Host(`auth.{{ domain }}`)'
+      traefik.http.routers.traefik-forward-auth.tls: 'true'
+      traefik.http.routers.traefik-forward-auth.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.traefik-forward-auth.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.traefik-forward-auth.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.traefik-forward-auth.loadbalancer.server.port: '4181'
+      traefik.http.middlewares.traefik-forward-auth.forwardauth.address: 'http://traefik-forward-auth:4181'
+      traefik.http.middlewares.traefik-forward-auth.forwardauth.trustForwardHeader: 'true'
+      traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders: 'X-Forwarded-User'
     env:
-      PUID: "{{ traefik_auth_user.uid }}"
-      PGID: "{{ traefik_auth_user.group }}"
-      TZ: "{{ timezone }}"
-      CONFIG: "/config.ini"
-      PORT: "4181"
-      PROVIDERS_GOOGLE_CLIENT_ID: "{{ google_client_id }}"
-      PROVIDERS_GOOGLE_CLIENT_SECRET: "{{ google_client_secret }}"
-      SECRET: "{{ traefik_auth_secret }}"
-      COOKIE_DOMAIN: "{{ domain }}"
-      INSECURE_COOKIE: "false"
-      AUTH_HOST: "auth.{{ domain }}"
-      WHITELIST: "{{ 'simon@' + domain }}"
-      LOG_LEVEL: "info"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ traefik_auth_user.uid }}'
+      PGID: '{{ traefik_auth_user.group }}'
+      TZ: '{{ timezone }}'
+      CONFIG: '/config.ini'
+      PORT: '4181'
+      PROVIDERS_GOOGLE_CLIENT_ID: '{{ google_client_id }}'
+      PROVIDERS_GOOGLE_CLIENT_SECRET: '{{ google_client_secret }}'
+      SECRET: '{{ traefik_auth_secret }}'
+      COOKIE_DOMAIN: '{{ domain }}'
+      INSECURE_COOKIE: 'false'
+      AUTH_HOST: 'auth.{{ domain }}'
+      WHITELIST: '{{ "simon@" + domain }}'
+      LOG_LEVEL: 'info'
+    purge_networks: yes
+    restart_policy: 'always'

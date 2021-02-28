@@ -1,27 +1,27 @@
 ---
-- name: "Create {{ mount }} directory"
+- name: 'Create {{ mount }} directory'
   become: yes
   file:
-    state: directory
-    path: "{{ mount }}"
+    state: 'directory'
+    path: '{{ mount }}'
     owner: 'root'
     group: 'root'
     mode: '0755'
 
-- name: "Get UUID of {{ mount }}"
+- name: 'Get UUID of {{ mount }}'
   check_mode: no
-  shell: "set -o pipefail && lsblk -f | grep {{ label }} | awk '{ print $4 }'"
+  changed_when: no
+  shell: 'set -o pipefail && lsblk -f | grep {{ label }} | awk ''{ print $4 }'''
   args:
-    executable: /bin/bash
-  changed_when: false
-  register: uuid
+    executable: '/bin/bash'
+  register: 'uuid'
 
-- name: "Add {{ mount }} to fstab"
+- name: 'Add {{ mount }} to fstab'
   become: yes
   mount:
     state: 'mounted'
-    path: "{{ mount }}"
-    src: "UUID={{ uuid.stdout }}"
+    path: '{{ mount }}'
+    src: 'UUID={{ uuid.stdout }}'
     fstype: 'ext4'
     opts: 'defaults'
     dump: '0'

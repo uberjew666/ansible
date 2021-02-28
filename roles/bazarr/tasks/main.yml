@@ -1,60 +1,60 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
     name: 'cloudflare-dns'
   vars:
     subdomain: 'bazarr'
 
-- name: Create user
+- name: 'Create user'
   user:
     state: 'present'
     name: 'bazarr'
-    group: "{{ media_group }}"
-    system: true
+    group: '{{ media_group }}'
+    system: yes
     comment: 'Bazarr container system user'
-    create_home: false
-    home: "{{ configs_dir }}/bazarr"
+    create_home: no
+    home: '{{ configs_dir }}/bazarr'
     shell: '/usr/sbin/nologin'
   register: 'bazarr_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ bazarr_user.home }}"
     state: 'directory'
-    owner: "{{ bazarr_user.uid }}"
-    group: "{{ bazarr_user.group }}"
+    path: '{{ bazarr_user.home }}'
+    owner: '{{ bazarr_user.uid }}'
+    group: '{{ bazarr_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
     state: 'started'
     name: 'bazarr'
     image: 'linuxserver/bazarr:latest'
-    pull: true
+    pull: yes
     volumes:
-      - "{{ bazarr_user.home }}:/config"
-      - "{{ movies_dir }}:/movies"
-      - "{{ tv_dir }}:/tv"
+      - '{{ bazarr_user.home }}:/config'
+      - '{{ movies_dir }}:/movies'
+      - '{{ tv_dir }}:/tv'
     networks:
       - name: 'cloudnet'
         aliases:
-          - "bazarr"
-    networks_cli_compatible: true
+          - 'bazarr'
+    networks_cli_compatible: yes
     labels:
       traefik.enable: 'true'
       traefik.http.routers.bazarr.service: 'bazarr'
-      traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ domain }}`)"
+      traefik.http.routers.bazarr.rule: 'Host(`bazarr.{{ domain }}`)'
       traefik.http.routers.bazarr.tls: 'true'
       traefik.http.routers.bazarr.tls.certresolver: 'letsencrypt'
-      traefik.http.routers.bazarr.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.bazarr.tls.domains[0].sans: "*.{{ domain }}"
+      traefik.http.routers.bazarr.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.bazarr.tls.domains[0].sans: '*.{{ domain }}'
       traefik.http.services.bazarr.loadbalancer.server.port: '6767'
     env:
-      PUID: "{{ bazarr_user.uid }}"
-      PGID: "{{ bazarr_user.group }}"
-      TZ: "{{ timezone }}"
+      PUID: '{{ bazarr_user.uid }}'
+      PGID: '{{ bazarr_user.group }}'
+      TZ: '{{ timezone }}'
       UMASK: '002'
-    purge_networks: true
+    purge_networks: yes
     restart_policy: 'always'
     healthcheck:
       start_period: '2s'

@@ -1,57 +1,57 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: "{{ item }}"
+    subdomain: '{{ item }}'
   loop:
-    - "www"
-    - "organizr"
+    - 'www'
+    - 'organizr'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: organizr
-    system: true
-    comment: "Organizr container system user"
-    create_home: false
-    home: "{{ configs_dir }}/organizr"
-    shell: "/usr/sbin/nologin"
-  register: organizr_user
+    state: 'present'
+    name: 'organizr'
+    system: yes
+    comment: 'Organizr container system user'
+    create_home: no
+    home: '{{ configs_dir }}/organizr'
+    shell: '/usr/sbin/nologin'
+  register: 'organizr_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ organizr_user.home }}"
-    state: directory
-    owner: "{{ organizr_user.uid }}"
-    group: "{{ organizr_user.group }}"
+    state: 'directory'
+    path: '{{ organizr_user.home }}'
+    owner: '{{ organizr_user.uid }}'
+    group: '{{ organizr_user.group }}'
     mode: '0755'
 
-- name: Create and start organizr container
+- name: 'Create and start organizr container'
   docker_container:
-    state: started
-    name: organizr
-    image: organizr/organizr:latest
-    pull: true
+    state: 'started'
+    name: 'organizr'
+    image: 'organizr/organizr:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/organizr:/config"
+      - '{{ configs_dir }}/organizr:/config'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - organizr
-    networks_cli_compatible: true
+          - 'organizr'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.organizr.service: "organizr"
-      traefik.http.routers.organizr.rule: "Host(`www.{{ domain }}`)"
-      traefik.http.routers.organizr.tls: "true"
-      traefik.http.routers.organizr.tls.certresolver: "letsencrypt"
-      traefik.http.routers.organizr.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.organizr.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.organizr.loadbalancer.server.port: "80"
+      traefik.enable: 'true'
+      traefik.http.routers.organizr.service: 'organizr'
+      traefik.http.routers.organizr.rule: 'Host(`www.{{ domain }}`)'
+      traefik.http.routers.organizr.tls: 'true'
+      traefik.http.routers.organizr.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.organizr.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.organizr.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.organizr.loadbalancer.server.port: '80'
     env:
-      PUID: "{{ organizr_user.uid }}"
-      PGID: "{{ organizr_user.group }}"
-      TZ: "{{ timezone }}"
-    purge_networks: true
-    restart_policy: always
-
+      PUID: '{{ organizr_user.uid }}'
+      PGID: '{{ organizr_user.group }}'
+      TZ: '{{ timezone }}'
+    purge_networks: yes
+    restart_policy: 'always'

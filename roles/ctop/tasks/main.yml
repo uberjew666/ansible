@@ -1,13 +1,15 @@
 ---
-- name: Install ctop binary
+- name: 'Install ctop binary'
   get_url:
-    url: "https://github.com/bcicen/ctop/releases/download/v{{ ctop_version | default('0.7.5') }}/ctop-{{ ctop_version | default('0.7.5') }}-linux-amd64"
-    dest: /usr/local/bin/ctop
+    url: 'https://github.com/bcicen/ctop/releases/download/v{{ ctop_version|default("0.7.5") }}/ctop-{{ ctop_version|default("0.7.5") }}-linux-amd64'
+    dest: '/usr/local/bin/ctop'
     mode: '0755'
 
-- name: Check binary is installed correctly
+- name: 'Check binary is installed correctly'
   check_mode: no
-  command: ctop -v
-  register: shell_output
-  failed_when: "ctop_version|default('0.7.5') is not in shell_output.stdout"
-  changed_when: false
+  changed_when: no
+  failed_when: 'ctop_version|default("0.7.5") is not in shell_output.stdout'
+  command:
+  args:
+    cmd: 'ctop -v'
+  register: 'shell_output'

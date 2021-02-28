@@ -1,61 +1,61 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: jackett
+    subdomain: 'jackett'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: jackett
-    group: "{{ media_group }}"
-    system: true
-    comment: "Jackett container system user"
-    create_home: false
-    home: "{{ configs_dir }}/jackett"
-    shell: "/usr/sbin/nologin"
-  register: jackett_user
+    state: 'present'
+    name: 'jackett'
+    group: '{{ media_group }}'
+    system: yes
+    comment: 'Jackett container system user'
+    create_home: no
+    home: '{{ configs_dir }}/jackett'
+    shell: '/usr/sbin/nologin'
+  register: 'jackett_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ jackett_user.home }}"
-    state: directory
-    owner: "{{ jackett_user.uid }}"
-    group: "{{ jackett_user.group }}"
+    state: 'directory'
+    path: '{{ jackett_user.home }}'
+    owner: '{{ jackett_user.uid }}'
+    group: '{{ jackett_user.group }}'
     mode: '0755'
 
-- name: Create and start linuxserver container
+- name: 'Create and start linuxserver container'
   docker_container:
-    state: started
-    name: jackett
-    image: linuxserver/jackett:latest
-    pull: true
+    state: 'started'
+    name: 'jackett'
+    image: 'linuxserver/jackett:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/jackett:/config"
+      - '{{ configs_dir }}/jackett:/config'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - jackett
-    networks_cli_compatible: true
+          - 'jackett'
+    networks_cli_compatible: yes
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.jackett.service: "jackett"
-      traefik.http.routers.jackett.rule: "Host(`jackett.{{ domain }}`)"
-      traefik.http.routers.jackett.tls: "true"
-      traefik.http.routers.jackett.tls.certresolver: "letsencrypt"
-      traefik.http.routers.jackett.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.jackett.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.services.jackett.loadbalancer.server.port: "9117"
+      traefik.enable: 'true'
+      traefik.http.routers.jackett.service: 'jackett'
+      traefik.http.routers.jackett.rule: 'Host(`jackett.{{ domain }}`)'
+      traefik.http.routers.jackett.tls: 'true'
+      traefik.http.routers.jackett.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.jackett.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.jackett.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.services.jackett.loadbalancer.server.port: '9117'
     env:
-      PUID: "{{ jackett_user.uid }}"
-      PGID: "{{ jackett_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-      RUN_OPTS: ""
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ jackett_user.uid }}'
+      PGID: '{{ jackett_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+      RUN_OPTS: ''
+    purge_networks: yes
+    restart_policy: 'always'
     healthcheck:
-      start_period: 2s
-      test: "curl --request GET --fail --head --silent http://localhost:9117/ || exit 1"
-      interval: 10s
-
+      start_period: '2s'
+      test: 'curl --request GET --fail --head --silent http://localhost:9117/ || exit 1'
+      interval: '10s'

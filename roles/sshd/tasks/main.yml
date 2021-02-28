@@ -1,27 +1,26 @@
 ---
-- name: Install openssh-server package
+- name: 'Install openssh-server package'
   become: yes
   package:
+    state: 'present'
     name:
-      - "openssh-server"
-    state: present
+      - 'openssh-server'
 
-- name: Disable password authentication
+- name: 'Disable password authentication'
   become: yes
   lineinfile:
-    path: /etc/ssh/sshd_config
+    state: 'present'
+    path: '/etc/ssh/sshd_config'
     regexp: '^PasswordAuthentication'
-    line: "PasswordAuthentication no"
-    state: present
+    line: 'PasswordAuthentication no'
     backup: yes
-    validate: /usr/sbin/sshd -t -f %s
+    validate: '/usr/sbin/sshd -t -f %s'
   notify:
-    - "Restart SSHD service"
+    - 'Restart SSHD service'
 
-- name: Allow SSH through firewall
+- name: 'Allow SSH through firewall'
   ufw:
-    rule: allow
+    rule: 'allow'
     port: '22'
-    proto: tcp
-    comment: "OpenSSH Server"
-
+    proto: 'tcp'
+    comment: 'OpenSSH Server'

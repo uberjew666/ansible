@@ -1,79 +1,80 @@
 ---
-- name: Create user
+- name: 'Create user'
   user:
-    name: nginx
-    group: nginx
-    system: true
-    comment: "nginx container system user"
-    create_home: false
-    home: "{{ configs_dir }}/nginx"
-    shell: "/usr/sbin/nologin"
-  register: nginx_user
+    state: 'present'
+    name: 'nginx'
+    group: 'nginx'
+    system: yes
+    comment: 'nginx container system user'
+    create_home: no
+    home: '{{ configs_dir }}/nginx'
+    shell: '/usr/sbin/nologin'
+  register: 'nginx_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ nginx_user.home }}"
-    state: directory
-    owner: "{{ nginx_user.uid }}"
-    group: "{{ nginx_user.group }}"
+    state: 'directory'
+    path: '{{ nginx_user.home }}'
+    owner: '{{ nginx_user.uid }}'
+    group: '{{ nginx_user.group }}'
     mode: '0755'
 
-- name: Create and start container
+- name: 'Create and start container'
   docker_container:
-    state: absent
-    name: nginx-proxy
-    image: jwilder/nginx-proxy:latest
-    pull: true
+    state: 'absent'
+    name: 'nginx-proxy'
+    image: 'jwilder/nginx-proxy:latest'
+    pull: yes
     volumes:
-      - "{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs"
-      - "{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d"
-      - "/usr/share/nginx/html"
-      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - '{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs'
+      - '{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d'
+      - '/usr/share/nginx/html'
+      - '/var/run/docker.sock:/tmp/docker.sock:ro'
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - nginx-proxy
-    networks_cli_compatible: true
+          - 'nginx-proxy'
+    networks_cli_compatible: yes
     env:
-      PUID: "{{ nginx_user.uid }}"
-      PGID: "{{ nginx_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ nginx_user.uid }}'
+      PGID: '{{ nginx_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+    purge_networks: yes
+    restart_policy: 'always'
 
-- name: Create and start companion container
+- name: 'Create and start companion container'
   docker_container:
-    state: absent
-    name: nginx-proxy-letsencrypt
-    image: jrcs/letsencrypt-nginx-proxy-companion:latest
-    pull: true
+    state: 'absent'
+    name: 'nginx-proxy-letsencrypt'
+    image: 'jrcs/letsencrypt-nginx-proxy-companion:latest'
+    pull: yes
     volumes_from:
-      - nginx-proxy
+      - 'nginx-proxy'
     volumes:
-      - "{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs"
-      - "{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/etc/acme.sh"
+      - '{{ configs_dir }}/nginx-proxy/certs:/etc/nginx/certs'
+      - '{{ configs_dir }}/nginx-proxy/vhost.d:/etc/nginx/vhost.d'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/etc/acme.sh'
     env:
-      PUID: "{{ nginx_user.uid }}"
-      PGID: "{{ nginx_user.group }}"
-      TZ: "{{ timezone }}"
-      UMASK: "002"
-      LETSENCRYPT_KEYSIZE: "ec-256"
-      DEFAULT_EMAIL: "simon_hulme@hotmail.co.uk"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ nginx_user.uid }}'
+      PGID: '{{ nginx_user.group }}'
+      TZ: '{{ timezone }}'
+      UMASK: '002'
+      LETSENCRYPT_KEYSIZE: 'ec-256'
+      DEFAULT_EMAIL: 'simon_hulme@hotmail.co.uk'
+    purge_networks: yes
+    restart_policy: 'always'
 
-- name: Allow nginx-proxy through firewall
+- name: 'Allow nginx-proxy through firewall'
   ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
-    comment: "nginx Reverse Proxy"
+    rule: 'allow'
+    port: '{{ item }}'
+    proto: 'tcp'
+    comment: 'nginx Reverse Proxy'
   loop:
-    - "80"
-    - "443"
+    - '80'
+    - '443'

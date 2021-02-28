@@ -1,16 +1,15 @@
 ---
-- name: "Open port to the web"
-  delegate_to: "{{ groups['asuswrt_routers'][0] }}"
+- name: 'Open port to the web'
+  delegate_to: '{{ groups["asuswrt_routers"][0] }}'
   become: no
   iptables:
-    action: insert
-    chain: VSERVER
+    action: 'insert'
+    chain: 'VSERVER'
     rule_num: '1'
-    table: nat
-    protocol: tcp
-    match: tcp
-    source: "{{ source | default(omit) }}"
+    table: 'nat'
+    protocol: 'tcp'
+    match: 'tcp'
+    source: '{{ source | default(omit) }}'
     destination_port: '25565'
-    jump: DNAT
-    to_destination: 192.168.1.50
-
+    jump: 'DNAT'
+    to_destination: '192.168.1.50'

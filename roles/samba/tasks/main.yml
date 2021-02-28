@@ -1,36 +1,35 @@
 ---
-- name: Install Samba
+- name: 'Install Samba'
   become: yes
   apt:
+    state: 'present'
     name:
-      - "samba"
-    state: present
+      - 'samba'
 
-- name: Configure Samba
+- name: 'Configure Samba'
   become: yes
   template:
-    src: smb.j2
-    dest: /etc/samba/smb.conf
-    owner: root
-    group: root
+    src: 'smb.j2'
+    dest: '/etc/samba/smb.conf'
+    owner: 'root'
+    group: 'root'
     mode: '0644'
-  notify: Restart Samba
+  notify: 'Restart Samba'
 
-- meta: flush_handlers
+- meta: 'flush_handlers'
 
-- name: Allow samba through firewall
+- name: 'Allow samba through firewall'
   become: yes
   ufw:
-    rule: allow
+    rule: 'allow'
     port: '445'
-    proto: tcp
-    comment: "Samba File Server"
+    proto: 'tcp'
+    comment: 'Samba File Server'
 
-- name: Check Samba is running
+- name: 'Check Samba is running'
   wait_for:
-    host: "{{ ansible_default_ipv4.address }}"
-    port: 445
-    delay: 3
-    timeout: 60
-  delegate_to: localhost
-
+    host: '{{ ansible_default_ipv4.address }}'
+    port: '445'
+    delay: '3'
+    timeout: '60'
+  delegate_to: 'localhost'

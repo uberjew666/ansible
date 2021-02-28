@@ -1,31 +1,32 @@
 ---
-- name: Remove non-official binaries
+- name: 'Remove non-official binaries'
   apt:
-    name: speedtest-cli
-    state: absent
-
-- name: Install dependencies
-  apt:
+    state: 'absent'
     name:
-      - "gnupg1"
-      - "apt-transport-https"
-      - "dirmngr"
-    state: present
+      - 'speedtest-cli'
 
-- name: Add apt key by ID from ubuntu keyserver
+- name: 'Install dependencies'
+  apt:
+    state: 'present'
+    name:
+      - 'gnupg1'
+      - 'apt-transport-https'
+      - 'dirmngr'
+
+- name: 'Add apt key by ID from ubuntu keyserver'
   apt_key:
-    keyserver: "keyserver.ubuntu.com"
-    id: "379CE192D401AB61"
+    keyserver: 'keyserver.ubuntu.com'
+    id: '379CE192D401AB61'
 
-- name: Add repository into sources list
+- name: 'Add repository into sources list'
   apt_repository:
-    repo: "deb https://ookla.bintray.com/debian generic main"
-    state: present
-    filename: speedtest
+    state: 'present'
+    repo: 'deb https://ookla.bintray.com/debian generic main'
+    filename: 'speedtest'
 
-- name: Update apt cache and install speedtest binary
+- name: 'Update apt cache and install speedtest binary'
   apt:
+    state: 'present'
     name:
-      - "speedtest"
-    update_cache: true
-
+      - 'speedtest'
+    update_cache: yes

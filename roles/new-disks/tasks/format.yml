@@ -1,33 +1,33 @@
 ---
-- name: Get device name from WWN
-  shell: "set -o pipefail && lsblk -dn -o WWN,NAME | grep '{{ item.wwn }}' | awk '{ print $2 }'"
-  register: device_name
-  changed_when: false
+- name: 'Get device name from WWN'
+  changed_when: no
+  shell: 'set -o pipefail && lsblk -dn -o WWN,NAME | grep "{{ item.wwn }}" | awk ''{ print $2 }'''
+  register: 'device_name'
 
-- name: Set fact about current disk
+- name: 'Set fact about current disk'
   set_fact:
-    disk: "{{ '/dev/' + device_name.stdout }}"
+    disk: '{{ "/dev/" + device_name.stdout }}'
 
-- name: Check partition
+- name: 'Check partition'
   become: yes
   parted:
-    state: info
-    device: "{{ disk }}"
-  register: disk_info
+    state: 'info'
+    device: '{{ disk }}'
+  register: 'disk_info'
 
 - debug:
-    var: disk_info
+    var: 'disk_info'
 
-#- name: Create partition
-#  parted:
-#    state: present
-#    device: /dev/sdd
-#    number: 1
-#    label: gpt
-#    name: primary
-#    part_start: '0%'
-#    part_end: '100%'
-#  register: new_disk
+# - name: Create partition
+#   parted:
+#     state: present
+#     device: /dev/sdd
+#     number: 1
+#     label: gpt
+#     name: primary
+#     part_start: '0%'
+#     part_end: '100%'
+#   register: new_disk
 
 # - name: Format new partitions
 #   filesystem:

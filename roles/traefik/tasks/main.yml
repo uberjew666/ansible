@@ -1,109 +1,109 @@
 ---
-- name: Include Cloudflare DNS tasks
+- name: 'Include Cloudflare DNS tasks'
   include_role:
-    name: cloudflare-dns
+    name: 'cloudflare-dns'
   vars:
-    subdomain: traefik
+    subdomain: 'traefik'
 
-- name: Create user
+- name: 'Create user'
   user:
-    name: traefik
-    system: true
-    comment: "Traefik container system user"
-    create_home: false
-    home: "{{ configs_dir }}/traefik"
-    shell: "/usr/sbin/nologin"
-  register: traefik_user
+    state: 'present'
+    name: 'traefik'
+    system: yes
+    comment: 'Traefik container system user'
+    create_home: no
+    home: '{{ configs_dir }}/traefik'
+    shell: '/usr/sbin/nologin'
+  register: 'traefik_user'
 
-- name: Create home directory
+- name: 'Create home directory'
   file:
-    path: "{{ traefik_user.home }}"
-    state: directory
-    owner: "{{ traefik_user.uid }}"
-    group: "{{ traefik_user.group }}"
+    state: 'directory'
+    path: '{{ traefik_user.home }}'
+    owner: '{{ traefik_user.uid }}'
+    group: '{{ traefik_user.group }}'
     mode: '0755'
 
-- name: Create TLS settings provider file
+- name: 'Create TLS settings provider file'
   template:
-    src: tls.yaml.j2
-    dest: "{{ traefik_user.home }}/tls.yaml"
-    owner: "{{ traefik_user.uid }}"
-    group: "{{ traefik_user.group }}"
+    src: 'tls.yaml.j2'
+    dest: '{{ traefik_user.home }}/tls.yaml'
+    owner: '{{ traefik_user.uid }}'
+    group: '{{ traefik_user.group }}'
     mode: '0644'
 
-- name: Create and start Traefik container
+- name: 'Create and start Traefik container'
   docker_container:
-    state: started
-    name: traefik
-    image: traefik:v2.4
+    state: 'started'
+    name: 'traefik'
+    image: 'traefik:v2.4'
     command:
-      - "--global.sendanonymoususage=true"
-      - "--api=true"
-      - "--api.dashboard=true"
-      - "--providers.docker"
-      - "--providers.docker.network=cloudnet"
-      - "--providers.file.filename='/etc/traefik/tls.yaml'"
-      - "--log.level=INFO"
-      - "--entrypoints.http"
-      - "--entrypoints.http.address=':80'"
-      - "--entrypoints.http.http.redirections.entryPoint.to=https"
-      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.http.http.redirections.entrypoint.permanent=true"
-      - "--entrypoints.https"
-      - "--entrypoints.https.address=':443'"
-      - "--entrypoints.https.http.middlewares='hsts{{ ', traefik-forward-auth' if (oauth_enabled|default('false')) else '' }}'"
-      - "--certificatesresolvers.letsencrypt"
-      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.provider='cloudflare'"
-      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.resolvers='1.1.1.1:53, 1.0.0.1:53'"
-      - "--certificatesresolvers.letsencrypt.acme.email='simon_hulme@hotmail.co.uk'"
-      - "--certificatesresolvers.letsencrypt.acme.storage='/etc/traefik/acme.json'"
-      - "--certificatesresolvers.letsencrypt.acme.keytype='EC384'"
-    pull: true
+      - '--global.sendanonymoususage=true'
+      - '--api=true'
+      - '--api.dashboard=true'
+      - '--providers.docker'
+      - '--providers.docker.network=cloudnet'
+      - '--providers.file.filename="/etc/traefik/tls.yaml"'
+      - '--log.level=INFO'
+      - '--entrypoints.http'
+      - '--entrypoints.http.address=":80"'
+      - '--entrypoints.http.http.redirections.entryPoint.to=https'
+      - '--entrypoints.http.http.redirections.entryPoint.scheme=https'
+      - '--entrypoints.http.http.redirections.entrypoint.permanent=true'
+      - '--entrypoints.https'
+      - '--entrypoints.https.address=":443"'
+      - '--entrypoints.https.http.middlewares="hsts{{ ", traefik-forward-auth" if (oauth_enabled|default("false")) else "" }}"'
+      - '--certificatesresolvers.letsencrypt'
+      - '--certificatesresolvers.letsencrypt.acme.dnsChallenge=true'
+      - '--certificatesresolvers.letsencrypt.acme.dnsChallenge.provider="cloudflare"'
+      - '--certificatesresolvers.letsencrypt.acme.dnsChallenge.resolvers="1.1.1.1:53, 1.0.0.1:53"'
+      - '--certificatesresolvers.letsencrypt.acme.email="simon_hulme@hotmail.co.uk"'
+      - '--certificatesresolvers.letsencrypt.acme.storage="/etc/traefik/acme.json"'
+      - '--certificatesresolvers.letsencrypt.acme.keytype="EC384"'
+    pull: yes
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "{{ configs_dir }}/traefik:/etc/traefik"
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '{{ configs_dir }}/traefik:/etc/traefik'
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     networks:
-      - name: cloudnet
+      - name: 'cloudnet'
         aliases:
-          - traefik
-    networks_cli_compatible: true
+          - 'traefik'
+    networks_cli_compatible: yes
     labels:
-      traefik.http.middlewares.hsts.headers.stsSeconds: "15552000"
-      traefik.http.middlewares.hsts.headers.stsIncludeSubdomains: "true"
-      traefik.http.middlewares.hsts.headers.stsPreload: "true"
-      traefik.http.middlewares.hsts.headers.forceSTSHeader: "true"
-      traefik.http.routers.traefik.rule: "Host(`traefik.{{ domain }}`)"
-      traefik.http.routers.traefik.tls: "true"
-      traefik.http.routers.traefik.tls.certresolver: "letsencrypt"
-      traefik.http.routers.traefik.tls.domains[0].main: "{{ domain }}"
-      traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ domain }}"
-      traefik.http.routers.traefik.service: "api@internal"
-      traefik.http.services.traefik.loadbalancer.server.port: "9999"
+      traefik.http.middlewares.hsts.headers.stsSeconds: '15552000'
+      traefik.http.middlewares.hsts.headers.stsIncludeSubdomains: 'true'
+      traefik.http.middlewares.hsts.headers.stsPreload: 'true'
+      traefik.http.middlewares.hsts.headers.forceSTSHeader: 'true'
+      traefik.http.routers.traefik.rule: 'Host(`traefik.{{ domain }}`)'
+      traefik.http.routers.traefik.tls: 'true'
+      traefik.http.routers.traefik.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.traefik.tls.domains[0].main: '{{ domain }}'
+      traefik.http.routers.traefik.tls.domains[0].sans: '*.{{ domain }}'
+      traefik.http.routers.traefik.service: 'api@internal'
+      traefik.http.services.traefik.loadbalancer.server.port: '9999'
     env:
-      PUID: "{{ traefik_user.uid }}"
-      PGID: "{{ traefik_user.group }}"
-      TZ: "{{ timezone }}"
-      CF_API_EMAIL: "{{ cloudflare_email }}"
-      CF_API_KEY: "{{ cloudflare_api_token }}"
-    purge_networks: true
-    restart_policy: always
+      PUID: '{{ traefik_user.uid }}'
+      PGID: '{{ traefik_user.group }}'
+      TZ: '{{ timezone }}'
+      CF_API_EMAIL: '{{ cloudflare_email }}'
+      CF_API_KEY: '{{ cloudflare_api_token }}'
+    purge_networks: yes
+    restart_policy: 'always'
 
-- name: Include traefik-forward-auth tasks
+- name: 'Include traefik-forward-auth tasks'
+  when: 'oauth_enabled | default("false") | bool'
   include_role:
-    name: traefik-forward-auth
-  when:
-    - "oauth_enabled | default('false') | bool"
+    name: 'traefik-forward-auth'
 
-- name: Allow 80 and 443 through the firewall
+- name: 'Allow 80 and 443 through the firewall'
   ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
-    comment: "Traefik Reverse Proxy"
+    rule: 'allow'
+    port: '{{ item }}'
+    proto: 'tcp'
+    comment: 'Traefik Reverse Proxy'
   loop:
-    - "80"
-    - "443"
+    - '80'
+    - '443'
