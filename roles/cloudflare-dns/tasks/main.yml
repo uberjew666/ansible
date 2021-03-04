@@ -1,9 +1,4 @@
 ---
-- name: 'Initialise subdomains list'
-  when: 'subdomains is undefined'
-  set_fact:
-    subdomains: []
-
 - name: 'Get public IP address'
   check_mode: no
   uri:
@@ -29,5 +24,5 @@
 
 - name: 'Add {{ subdomain }} to subdomains list'
   set_fact:
-    subdomains: '{{ subdomains + [ subdomain ] }}'
+    subdomains: '{{ subdomains|default([]) + [ subdomain ] }}'
     cacheable: yes
