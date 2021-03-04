@@ -52,7 +52,7 @@
       - '--entrypoints.http.http.redirections.entrypoint.permanent=true'
       - '--entrypoints.https'
       - '--entrypoints.https.address=":443"'
-      - '--entrypoints.https.http.middlewares="hsts{{ ", traefik-forward-auth" if (oauth_enabled|default("false")) else "" }}"'
+      - '--entrypoints.https.http.middlewares="hsts{{ ", traefik-forward-auth" if (oauth_enabled|default(true)) else "" }}"'
       - '--certificatesresolvers.letsencrypt'
       - '--certificatesresolvers.letsencrypt.acme.dnsChallenge=true'
       - '--certificatesresolvers.letsencrypt.acme.dnsChallenge.provider="cloudflare"'
@@ -94,7 +94,7 @@
     restart_policy: 'always'
 
 - name: 'Include traefik-forward-auth tasks'
-  when: 'oauth_enabled | default("false") | bool'
+  when: 'oauth_enabled | default(true) | bool'
   include_role:
     name: 'traefik-forward-auth'
 
