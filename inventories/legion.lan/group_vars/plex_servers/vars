@@ -120,17 +120,33 @@ snapraid_scrub_olderthan: '7'
 # MergerFS variables
 mergerfs_version: 2.32.2
 mergerfs_mount_opts:
-  - "defaults"
-  - "nonempty" # required when disks are not mounted but containers creat mounted directories - fails otherwise
-  - "use_ino"
-  - "category.create=lfs" # set to lfs (least free space) due to change in mergerfs 2.25.0. eplfs would prioritise data on the disk it was created on even if minfreespace was set and below the threshold resulting in enospc error https://github.com/trapexit/mergerfs#policies
-  - "moveonenospc=true"
-  - "allow_other" # A libfuse option which allows users besides the one which ran mergerfs to see the filesystem. This is required for most use-cases
-  - "minfreespace=20G" # The minimum space value used for creation policies. Can be overridden by branch specific option. Understands 'K', 'M', and 'G' to represent kilobyte, megabyte, and gigabyte respectively. (default: 4G)
-  - "fsname={{ data_dir }}" # Sets the name of the filesystem as seen in mount, df, etc. Defaults to a list of the source paths concatenated together with the longest common prefix removed
+  - 'defaults'
+  - 'nonempty' # required when disks are not mounted but containers creat mounted directories - fails otherwise
+  - 'use_ino'
+  - 'category.create=lfs' # set to lfs (least free space) due to change in mergerfs 2.25.0. eplfs would prioritise data on the disk it was created on even if minfreespace was set and below the threshold resulting in enospc error https://github.com/trapexit/mergerfs#policies
+  - 'moveonenospc=true'
+  - 'allow_other' # A libfuse option which allows users besides the one which ran mergerfs to see the filesystem. This is required for most use-cases
+  - 'minfreespace=20G' # The minimum space value used for creation policies. Can be overridden by branch specific option. Understands 'K', 'M', and 'G' to represent kilobyte, megabyte, and gigabyte respectively. (default: 4G)
+  - 'fsname={{ data_dir }}' # Sets the name of the filesystem as seen in mount, df, etc. Defaults to a list of the source paths concatenated together with the longest common prefix removed
 
 # Docker variables
-docker_compose_version: 1.28.4
+docker_compose_version: '1.28.4'
+
+# Traefik variables
+traefik_tls_min_version: 'VersionTLS12'
+traefik_tls_max_version: 'VersionTLS12'
+traefik_tls_prefer_cipher_suites: 'true'
+traefik_tls_curve_preferences:
+  - 'secp521r1'
+  - 'secp384r1'
+traefik_tls_cipher_suites:
+  - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+  - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+  - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
+  - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+  - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305'
+  - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+traefik_tls_sni_strict: 'true'
 
 # Sabnzbd variables
 sabnzbd_settings:
