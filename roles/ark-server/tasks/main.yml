@@ -9,11 +9,11 @@
       - '/ssd/games/ark:/ark'
       - '/ssd/steam:/home/steam/Steam'
     ports:
-      - '7778:7778'
-      - '7778:7778/udp'
-      - '27016:27016'
-      - '27016:27016/udp'
-      - '32330:32330'
+      - '{{ ansible_default_ipv4.address }}:7778:7778'
+      - '{{ ansible_default_ipv4.address }}:7778:7778/udp'
+      - '{{ ansible_default_ipv4.address }}:27016:27016'
+      - '{{ ansible_default_ipv4.address }}:27016:27016/udp'
+      - '{{ ansible_default_ipv4.address }}:32330:32330'
     networks:
       - name: 'cloudnet'
         aliases:

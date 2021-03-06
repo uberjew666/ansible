@@ -65,8 +65,8 @@
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
       - '{{ configs_dir }}/traefik:/etc/traefik'
     ports:
-      - '80:80'
-      - '443:443'
+      - '{{ ansible_default_ipv4.address }}:80:80'
+      - '{{ ansible_default_ipv4.address }}:443:443'
     networks:
       - name: 'cloudnet'
         aliases:

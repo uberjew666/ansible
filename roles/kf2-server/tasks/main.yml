@@ -34,9 +34,9 @@
     volumes:
       - '{{ games_dir }}/kf2server:/home/steam/kf2server'
     ports:
-      - '0.0.0.0:20560:20560/udp'
-      - '0.0.0.0:27015:27015/udp'
-      - '0.0.0.0:7777:7777/udp'
+      - '{{ ansible_default_ipv4.address }}:20560:20560/udp'
+      - '{{ ansible_default_ipv4.address }}:27015:27015/udp'
+      - '{{ ansible_default_ipv4.address }}:7777:7777/udp'
     networks:
       - name: 'cloudnet'
         aliases:

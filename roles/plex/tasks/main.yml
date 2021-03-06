@@ -37,7 +37,7 @@
       - '{{ ssd_dir }}/transcode:/transcode'
       - '/tmp:/tmp'
     ports:
-      - '32400:32400'
+      - '{{ ansible_default_ipv4.address }}:32400:32400'
     networks:
       - name: 'cloudnet'
         aliases:

@@ -33,7 +33,7 @@
     volumes:
       - '{{ games_dir }}/minecraft/zanarkand:/data'
     ports:
-      - '25565:25565'
+      - '{{ ansible_default_ipv4.address }}:25565:25565'
     networks:
       - name: 'cloudnet'
         aliases:

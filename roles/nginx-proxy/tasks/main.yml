@@ -31,8 +31,8 @@
       - '/usr/share/nginx/html'
       - '/var/run/docker.sock:/tmp/docker.sock:ro'
     ports:
-      - '80:80'
-      - '443:443'
+      - '{{ ansible_default_ipv4.address }}:80:80'
+      - '{{ ansible_default_ipv4.address }}:443:443'
     networks:
       - name: 'cloudnet'
         aliases:
