@@ -72,5 +72,6 @@
       WHITELIST: '{{ "simon@" + domain }}'
       LOG_LEVEL: 'info'
     purge_networks: yes
+    pids_limit: '10'
     restart_policy: 'on-failure'
     restart_retries: '5'

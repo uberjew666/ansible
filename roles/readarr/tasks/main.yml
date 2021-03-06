@@ -57,5 +57,6 @@
       TZ: '{{ timezone }}'
       UMASK: '002'
     purge_networks: yes
+    pids_limit: '50'
     restart_policy: 'on-failure'
     restart_retries: '5'

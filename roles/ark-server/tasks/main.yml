@@ -36,6 +36,7 @@
       am_arkflag_NoBattleye: 'true'
       TZ: '{{ timezone }}'
     purge_networks: yes
+    pids_limit: '10'
     restart_policy: 'on-failure'
     restart_retries: '5'
 
