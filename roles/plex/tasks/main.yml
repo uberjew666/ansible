@@ -61,7 +61,7 @@
     restart_policy: 'on-failure'
     restart_retries: '5'
     devices:
-      - '/dev/dri:/dev/dri'
+      - '/dev/dri:/dev/dri:r'
     healthcheck:
       start_period: '2s'
       test: 'curl --fail --head --silent http://localhost:32400/web/index.html || exit 1'
