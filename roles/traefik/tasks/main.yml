@@ -91,7 +91,8 @@
       CF_API_EMAIL: '{{ cloudflare_email }}'
       CF_API_KEY: '{{ cloudflare_api_token }}'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
 
 - name: 'Include traefik-forward-auth tasks'
   when: 'oauth_enabled | default(true) | bool'

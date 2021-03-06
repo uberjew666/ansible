@@ -73,4 +73,6 @@
       PGID: '{{ gramarr_user.group }}'
       TZ: '{{ timezone }}'
       UMASK: '002'
-    restart_policy: 'always'
+    purge_networks: yes
+    restart_policy: 'on-failure'
+    restart_retries: '5'

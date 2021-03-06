@@ -44,7 +44,8 @@
       TZ: '{{ timezone }}'
       UMASK: '002'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
 
 - name: 'Create and start companion container'
   docker_container:
@@ -67,7 +68,8 @@
       LETSENCRYPT_KEYSIZE: 'ec-256'
       DEFAULT_EMAIL: 'simon_hulme@hotmail.co.uk'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
 
 - name: 'Allow nginx-proxy through firewall'
   ufw:

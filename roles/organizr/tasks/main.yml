@@ -54,4 +54,5 @@
       PGID: '{{ organizr_user.group }}'
       TZ: '{{ timezone }}'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'

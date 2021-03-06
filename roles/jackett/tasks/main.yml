@@ -54,7 +54,8 @@
       UMASK: '002'
       RUN_OPTS: ''
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
     healthcheck:
       start_period: '2s'
       test: 'curl --request GET --fail --head --silent http://localhost:9117/ || exit 1'

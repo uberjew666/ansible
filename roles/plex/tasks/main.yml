@@ -58,7 +58,8 @@
       TZ: '{{ timezone }}'
       VERSION: '{{ plex_version }}'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
     devices:
       - '/dev/dri:/dev/dri'
     healthcheck:

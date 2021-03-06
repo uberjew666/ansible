@@ -36,7 +36,8 @@
       am_arkflag_NoBattleye: 'true'
       TZ: '{{ timezone }}'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
 
 - name: 'Allow ARK Dedicated Server TCP ports through firewall'
   ufw:

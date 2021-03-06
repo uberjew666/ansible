@@ -22,4 +22,5 @@
     capabilities:
       - 'NET_ADMIN'
     purge_networks: yes
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'

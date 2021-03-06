@@ -63,7 +63,8 @@
       - 'SYS_PTRACE'
     security_opts:
       - 'apparmor=unconfined'
-    restart_policy: 'always'
+    restart_policy: 'on-failure'
+    restart_retries: '5'
     healthcheck:
       start_period: '2s'
       test: 'curl --fail --silent http://localhost:19999/api/v1/info > /dev/null || exit 1'
