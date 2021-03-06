@@ -21,7 +21,7 @@
     path: '{{ ddclient_user.home }}'
     owner: '{{ ddclient_user.uid }}'
     group: '{{ ddclient_user.group }}'
-    mode: '0755'
+    mode: '0700'
 
 - name: 'Setup config file'
   when: 'subdomains is defined'
