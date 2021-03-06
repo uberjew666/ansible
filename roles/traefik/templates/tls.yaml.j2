@@ -7,4 +7,4 @@ tls:
       preferServerCipherSuites: {{ traefik_tls_prefer_cipher_suites | default(false) }}
       curvePreferences: {{ traefik_tls_curve_preferences | default([]) }}
       cipherSuites: {{ traefik_tls_cipher_suites | default([]) }}
-      sniStrict: {{ traefik_tls_sni_strict | default'false') }}
+      sniStrict: {{ traefik_tls_sni_strict | default('false') }}
