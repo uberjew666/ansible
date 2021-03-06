@@ -210,7 +210,7 @@ sabnzbd_categories:
     priority: '0'
 
 # Plex variables
-plex_version: "1.21.3.4015-a4be9cb8b"
+plex_version: "1.22.0.4145-0af3a4016"
 
 # Valheim variables
 valheim_server_password: "{{ vault_valheim_server_password }}"
