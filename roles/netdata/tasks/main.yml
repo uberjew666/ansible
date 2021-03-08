@@ -59,6 +59,7 @@
       PUID: '{{ netdata_user.uid }}'
       PGID: '{{ netdata_user.group }}'
     purge_networks: yes
+    memory: '250M'
     pids_limit: '50'
     capabilities:
       - 'SYS_PTRACE'

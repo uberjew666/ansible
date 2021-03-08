@@ -58,6 +58,7 @@
       TZ: '{{ timezone }}'
       VERSION: '{{ plex_version }}'
     purge_networks: yes
+    memory: '1G'
     pids_limit: '100'
     restart_policy: 'on-failure'
     restart_retries: '5'

@@ -26,7 +26,7 @@
 
 - name: 'Create and start kf2server container'
   docker_container:
-    state: 'started'
+    state: 'absent'
     name: 'kf2server'
     image: 'dwurf/docker-kf2:latest'
     command: 'validate'
@@ -66,6 +66,7 @@
       KF_DISABLE_TAKEOVER: 'true'
       KF_ENABLE_WEB: 'true'
     purge_networks: yes
+    memory: '2G'
     pids_limit: '100'
     restart_policy: 'on-failure'
     restart_retries: '5'

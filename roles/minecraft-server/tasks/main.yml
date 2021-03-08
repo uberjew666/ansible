@@ -26,7 +26,7 @@
 
 - name: 'Deploy Zanarkand Minecraft Server'
   docker_container:
-    state: 'started'
+    state: 'absent'
     name: 'mc-zanarkand'
     image: 'itzg/minecraft-server:latest'
     pull: yes
@@ -58,6 +58,7 @@
       PVP: 'false'
       MEMORY: '2G'
     purge_networks: yes
+    memory: '3G'
     pids_limit: '100'
     restart_policy: 'on-failure'
     restart_retries: '5'

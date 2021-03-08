@@ -52,6 +52,7 @@
       PGID: '{{ portainer_user.group }}'
       TZ: '{{ timezone }}'
     purge_networks: yes
+    memory: '25M'
     pids_limit: '50'
     restart_policy: 'on-failure'
     restart_retries: '5'

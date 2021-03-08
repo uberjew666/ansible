@@ -32,7 +32,7 @@
     image: 'linuxserver/nzbhydra2:latest'
     pull: yes
     volumes:
-      - '{{ configs_dir }}/hydra:/config'
+      - '{{ configs_dir }}/nzbhydra:/config'
       - '{{ download_dir }}:/downloads'
     networks:
       - name: 'cloudnet'
@@ -54,6 +54,7 @@
       TZ: '{{ timezone }}'
       UMASK: '002'
     purge_networks: yes
+    memory: '500M'
     pids_limit: '75'
     restart_policy: 'on-failure'
     restart_retries: '5'
