@@ -131,6 +131,9 @@ mergerfs_mount_opts:
 
 # Docker variables
 docker_compose_version: '1.28.4'
+docker_daemon_file:
+  icc: false
+
 
 # Traefik variables
 traefik_tls_min_version: 'VersionTLS12'

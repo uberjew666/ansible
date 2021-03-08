@@ -51,6 +51,19 @@
     update_cache: yes
   register: 'install_docker'
 
+- name: 'Add daemon.json config file'
+  become: 'yes'
+  template:
+    src: 'daemon.json.j2'
+    dest: '/etc/docker/daemon.json'
+    owner: 'root'
+    group: 'root'
+    mode: '0600'
+  notify:
+    - 'Restart docker service'
+
+- meta: 'flush_handlers'
+
 - name: 'Install Docker SDK for Python'
   pip:
     state: 'present'
